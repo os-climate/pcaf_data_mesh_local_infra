@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: pcaf_unfccc_sovereign_emissions
+    columns:
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name
+        description: "ISO-3166 Country Name"
+      - name: validity_date
+        description: "Year of measurement"
+      - name: ghg_total_with_lulucf
+        description: "if not NULL, GHG total including LULUCF"
+      - name: ghg_total_with_lulucf_units
+        description: "kt CO2eq"
+      - name: ghg_total_without_lulucf
+        description: "if not NULL, GHG total excluding LULUCF"
+      - name: ghg_total_without_lulucf_units
+        description: "kt CO2eq"
+      - name: scope1_excl_source
+        description: "UNFCC or PRIMAP or NULL"
+      - name: gdp
+        description: "Gross Domestic Product"
+      - name: gdp_units
+        description: "USD"
+      - name: gdp_ppp
+        description: "Gross Domestic Product, normalized to Purchasing Power Parity"
+      - name: gdp_ppp_units
+        description: "USD"
+      - name: ghg_intensity_with_lulucf_per_gdp
+        description: "GHG tons including LULUCH divided by GDP"
+      - name: ghg_intensity_with_lulucf_per_gdp_units
+        description: "kt CO2e / USD"
+      - name: ghg_intensity_without_lulucf_per_gdp
+        description: "GHG tons excluding LULUCH divided by GDP"
+      - name: ghg_intensity_without_lulucf_per_gdp_units
+        description: "kt CO2e / USD"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - country_iso_code
+            - validity_date
+    config:
+      tags: 'UNFCCC' 

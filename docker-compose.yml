@@ -24,7 +24,7 @@ x-airflow-common:
 
     AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: 'airflow'
     AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE: 'openmetadata'
-    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE2OTgzNjY0MzksImV4cCI6bnVsbH0.Z_MtZySWQf1fUcTSwZuE1NA0XHiiyQHHhcZEjtPfoWJTpisUPBLCLedNL7k1n6GNz8iAW6SCcCwp3vZIZby_ukP2ZgksiLGicIp4VXxhQTlbmDqlDE1x9yJdoxXc72fNlMFlFMP-LphmgM7jcWSQ4HyXEoSkb03tZCZ49eff8JUwVSPrg-QG2Eze68ACqqRchQjJx8UbBekJhQ3qt_lTYf-MPs2dVzTaLsXqTeLuBc9b5S_XpXCMQHS50z4i-rOM3iHssSXzf1coC6tJNwlMQMmIcMqKoL71A2BBaDTR1QVxuKe5nMwwrzKVFz5HIP3CIe1R7YVqRTgBRWFpZTSc4g'
+    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE3MDA2NjQ5MzYsImV4cCI6bnVsbH0.1hOypu1Bm7h-n2_rNjBpqV_UUffchjU2hrOnADv7wc72c-rOJMK05f-gX3jdnC5kqdbAjYOmd7kSjz41xtD0ru4niyNh7XzSWkbzOW-Y3xzwWLrHeWebz7fFjCEgDYIY8GsSbX8y2rzNxA3rWXFgM5ReU4eSt5aZ2uNNBrJcG72YDZ5-F9J9AzULwRw63I2Jf7Sihs2px4X25liPSiO4eN40ajw6VKolTFesogayJlf47qAHBJQ4hCG4noUzRgP88yqS6JjNpMNuIM_ysL8FtbNAW_Cp1BxtBYMw3KTuAJTlLuslq4E-9rFWOpdEbtxhzpWR-LTFaXXNgfe6q8xInw'
     AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: 'http://openmetadata_server:8585/api'
 
     # yamllint disable rule:line-length
@@ -34,7 +34,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    # _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- apache-airflow-providers-trino openmetadata-managed-apis~=1.1.7.2 openmetadata-ingestion==1.1.7.2}
+    # _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- apache-airflow-providers-trino openmetadata-managed-apis~=1.2. openmetadata-ingestion==1.2.0}
     AIRFLOW_CONN_S3: 'aws://minioadmin:minioadmin@/?endpoint_url=http:%2F%2Fminio:9000'
     AIRFLOW_CONN_TRINO_CONNECTION: 'trino://admin:@trino:8080/'
   volumes:
@@ -79,7 +79,7 @@ services:
   trino:
     image: trinodb/trino
     volumes:
-      - ${PWD}/trino/etc/catalog:/etc/trino/catalog
+      - ${PWD:-.}/trino/etc/catalog:/etc/trino/catalog
     ports:
       - '18080:8080'
 
@@ -91,7 +91,9 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
       /usr/bin/mc mb --ignore-existing myminio/unfccc-raw;
-      /usr/bin/mc anonymous set public myminio/unfccc-raw;
+      /usr/bin/mc anonymous set public myminio/unfccc-raw;      
+      /usr/bin/mc mb --ignore-existing myminio/pcaf;
+      /usr/bin/mc anonymous set public myminio/pcaf;
       exit 0;
       "
 
@@ -110,7 +112,7 @@ services:
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - S3_ENDPOINT_URL=http://minio:9000
-      - S3_BUCKET=unfccc-raw
+      - S3_BUCKET=pcaf
       - S3_PREFIX=data
     ports:
       - '9083:9083'
@@ -310,13 +312,21 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  ###########################################################
-  ## OPEN METADATA
-  ##########################################################
+
+  jupyter:
+      build: 
+        context: .
+        dockerfile: ./docker/jupyter/Dockerfile
+      ports: 
+        - 8888:8888
+      volumes:
+        - ./notebooks:/home/jovyan/work/
+      container_name: jupyter
+      command: "start-notebook.sh --NotebookApp.token="
 
   postgresql:
     container_name: openmetadata_postgresql
-    image: docker.getcollate.io/openmetadata/postgresql:1.1.7
+    image: docker.getcollate.io/openmetadata/postgresql:1.2.0
     restart: always
     command: "--work_mem=10MB"
     environment:
@@ -353,7 +363,7 @@ services:
 
   execute-migrate-all:
     container_name: execute_migrate_all
-    image: docker.getcollate.io/openmetadata/server:1.1.7
+    image: docker.getcollate.io/openmetadata/server:1.2.0
     command: "./bootstrap/bootstrap_storage.sh migrate-all"
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
@@ -511,7 +521,7 @@ services:
   openmetadata-server:
     container_name: openmetadata_server
     restart: always
-    image: docker.getcollate.io/openmetadata/server:1.1.7
+    image: docker.getcollate.io/openmetadata/server:1.2.0
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
       SERVER_PORT: ${SERVER_PORT:-8585}

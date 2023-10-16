@@ -29,6 +29,7 @@ with DAG(
 
         zipfile = zipfile.ZipFile(open(local_file, "rb"))
 
+
         s3_hook = S3Hook(aws_conn_id='s3')
         for parquet_file_name in zipfile.namelist():
             print(parquet_file_name)
