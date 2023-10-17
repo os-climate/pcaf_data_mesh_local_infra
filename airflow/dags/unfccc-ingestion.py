@@ -1,28 +1,34 @@
+import requests
 from airflow import DAG
 import pendulum
 from airflow.decorators import task
 from airflow.providers.trino.operators.trino import TrinoOperator
+import os.path
+import urllib.request
 
 with DAG(
     "unfccc_ingestion", start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
     schedule_interval="@daily", catchup=False
 ) as dag:
 
-    @task.virtualenv(
-        task_id="load_data_to_s3_bucket", requirements=["unfccc_di_api==4.0.0", "pooch==1.7.0", ], system_site_packages=True
+    @task(
+        task_id="load_data_to_s3_bucket"
     )
     def load_zenodo_data_to_bucket():
-        import unfccc_di_api
         import pandas as pd
         import zipfile
-        import pooch
+        import urllib.request
         from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-        reader = unfccc_di_api.ZenodoReader()
-        frames = []
-        url = "doi:10.5281/zenodo.8159736/parquet-only.zip"
-        known_hash = "md5:95d98404f642ed2b684594abba8934ba"
-        zipfile_path = pooch.retrieve(url=url, known_hash=known_hash)
-        zipfile = zipfile.ZipFile(zipfile_path)
+        url = "https://zenodo.org/records/8159736/files/parquet-only.zip"
+        local_file = "localfile.zip"
+        if not os.path.isfile(local_file):
+            with urllib.request.urlopen(url) as file:
+                with open(local_file, "wb") as new_file:
+                    new_file.write(file.read())
+                new_file.close()
+
+        zipfile = zipfile.ZipFile(open(local_file, "rb"))
+
         s3_hook = S3Hook(aws_conn_id='s3')
         for parquet_file_name in zipfile.namelist():
             print(parquet_file_name)
