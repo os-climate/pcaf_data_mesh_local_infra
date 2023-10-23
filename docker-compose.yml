@@ -95,8 +95,8 @@ services:
     volumes:
      - ./docker-volume/db-data-postgres:/var/lib/postgresql/data
     
-    networks:
-      - app_net
+    # networks:
+    #   - app_net
     healthcheck:
       test: psql -U postgres -tAc 'select 1' -d openmetadata_db
       interval: 15s
@@ -109,8 +109,8 @@ services:
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
-    networks:
-      - app_net
+    # networks:
+    #   - app_net
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -271,8 +271,8 @@ services:
         condition: service_started
       postgresql:
         condition: service_healthy
-    networks:
-      - app_net
+    # networks:
+    #   - app_net
 
   openmetadata-server:
     container_name: openmetadata_server
@@ -428,8 +428,8 @@ services:
         condition: service_healthy
       execute-migrate-all:
         condition: service_completed_successfully
-    networks:
-      - app_net
+    # networks:
+    #   - app_net
     healthcheck:
       test: [ "CMD", "wget", "-q", "--spider",  "http://localhost:8586/healthcheck" ]
 
@@ -465,8 +465,8 @@ services:
       - 8080
     ports:
       - "8080:8080"
-    networks:
-      - app_net
+    # networks:
+    #   - app_net
     volumes:
       - ingestion-volume-dag-airflow:/opt/airflow/dag_generated_configs
       - ${AIRFLOW_PROJ_DIR:-.}/airflow/dags:/opt/airflow/dags
@@ -480,9 +480,9 @@ services:
     # ingestion-volume-dags:
     # ingestion-volume-tmp:
     # es1-data:
-networks:
-  app_net:
-    ipam:
-      driver: default
-      config:
-        - subnet: "172.16.240.0/24"
+# networks:
+#   app_net:
+#     ipam:
+#       driver: default
+#       config:
+#         - subnet: "172.16.240.0/24"
