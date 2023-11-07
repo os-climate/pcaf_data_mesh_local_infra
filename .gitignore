@@ -1,2 +1,7 @@
 airflow/dags/__pycache__
 airflow/logs/**
+.DS_Store
+airflow/.DS_Store
+airflow/dag_generated_configs
+airflow/dags/*_metadata_1gy4lY3y.py
+docker-volume
