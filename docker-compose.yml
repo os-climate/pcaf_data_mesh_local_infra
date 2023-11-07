@@ -4,20 +4,29 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.7.1}
-  # build: .
+  #image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.7.1}
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin:admin@postgres/pgdb
     # For backward compatibility, with Airflow <2.3
-    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin:admin@postgres/pgdb
+    #AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin:admin@postgres/pgdb
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://admin:admin@postgres/pgdb
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    ##openmeta
+    AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS: "/opt/airflow/dag_generated_configs"
+    AIRFLOW__LINEAGE__BACKEND: "airflow_provider_openmetadata.lineage.backend.OpenMetadataLineageBackend"
+
+    AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: 'airflow'
+    AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE: 'openmetadata'
+    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE2OTgzNjY0MzksImV4cCI6bnVsbH0.Z_MtZySWQf1fUcTSwZuE1NA0XHiiyQHHhcZEjtPfoWJTpisUPBLCLedNL7k1n6GNz8iAW6SCcCwp3vZIZby_ukP2ZgksiLGicIp4VXxhQTlbmDqlDE1x9yJdoxXc72fNlMFlFMP-LphmgM7jcWSQ4HyXEoSkb03tZCZ49eff8JUwVSPrg-QG2Eze68ACqqRchQjJx8UbBekJhQ3qt_lTYf-MPs2dVzTaLsXqTeLuBc9b5S_XpXCMQHS50z4i-rOM3iHssSXzf1coC6tJNwlMQMmIcMqKoL71A2BBaDTR1QVxuKe5nMwwrzKVFz5HIP3CIe1R7YVqRTgBRWFpZTSc4g'
+    AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: 'http://openmetadata_server:8585/api'
+
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -25,7 +34,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- apache-airflow-providers-trino openmetadata-ingestion==1.1.5.0}
+    # _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- apache-airflow-providers-trino openmetadata-managed-apis~=1.1.7.2 openmetadata-ingestion==1.1.7.2}
     AIRFLOW_CONN_S3: 'aws://minioadmin:minioadmin@/?endpoint_url=http:%2F%2Fminio:9000'
     AIRFLOW_CONN_TRINO_CONNECTION: 'trino://admin:@trino:8080/'
   volumes:
@@ -33,6 +42,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/airflow/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/dag_generated_configs:/opt/airflow/dag_generated_configs
   user: "${AIRFLOW_UID:-1000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -120,7 +130,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
-    command: webserver
+    command: webserver 
     ports:
       - "8080:8080"
     healthcheck:
@@ -251,8 +261,8 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        mkdir -p /sources/logs /sources/dags /sources/plugins /sources/dag_generated_configs
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,dag_generated_configs}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
@@ -300,6 +310,368 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+  ###########################################################
+  ## OPEN METADATA
+  ##########################################################
 
+  postgresql:
+    container_name: openmetadata_postgresql
+    image: docker.getcollate.io/openmetadata/postgresql:1.1.7
+    restart: always
+    command: "--work_mem=10MB"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    expose:
+      - 5432
+    ports:
+      - "5433:5432"
+    volumes:
+     - ./docker-volume/db-data-postgre:/var/lib/postgresql/data
+    
+    # networks:
+    #   - app_net
+    healthcheck:
+      test: psql -U postgres -tAc 'select 1' -d openmetadata_db
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  elasticsearch:
+    container_name: openmetadata_elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+    # networks:
+    #   - app_net
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - e-data:/usr/share/elasticsearch/data
+
+  execute-migrate-all:
+    container_name: execute_migrate_all
+    image: docker.getcollate.io/openmetadata/server:1.1.7
+    command: "./bootstrap/bootstrap_storage.sh migrate-all"
+    environment:
+      OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
+      SERVER_PORT: ${SERVER_PORT:-8585}
+      SERVER_ADMIN_PORT: ${SERVER_ADMIN_PORT:-8586}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Migration 
+      MIGRATION_LIMIT_PARAM: ${MIGRATION_LIMIT_PARAM:-1200}
+      
+      # OpenMetadata Server Authentication Configuration
+      AUTHORIZER_CLASS_NAME: ${AUTHORIZER_CLASS_NAME:-org.openmetadata.service.security.DefaultAuthorizer}
+      AUTHORIZER_REQUEST_FILTER: ${AUTHORIZER_REQUEST_FILTER:-org.openmetadata.service.security.JwtFilter}
+      AUTHORIZER_ADMIN_PRINCIPALS: ${AUTHORIZER_ADMIN_PRINCIPALS:-[admin]}
+      AUTHORIZER_ALLOWED_REGISTRATION_DOMAIN: ${AUTHORIZER_ALLOWED_REGISTRATION_DOMAIN:-["all"]}
+      AUTHORIZER_INGESTION_PRINCIPALS: ${AUTHORIZER_INGESTION_PRINCIPALS:-[ingestion-bot]}
+      AUTHORIZER_PRINCIPAL_DOMAIN: ${AUTHORIZER_PRINCIPAL_DOMAIN:-"openmetadata.org"}
+      AUTHORIZER_ENFORCE_PRINCIPAL_DOMAIN: ${AUTHORIZER_ENFORCE_PRINCIPAL_DOMAIN:-false}
+      AUTHORIZER_ENABLE_SECURE_SOCKET: ${AUTHORIZER_ENABLE_SECURE_SOCKET:-false}
+      AUTHENTICATION_PROVIDER: ${AUTHENTICATION_PROVIDER:-basic}
+      CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME: ${CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME:-""}
+      AUTHENTICATION_PUBLIC_KEYS: ${AUTHENTICATION_PUBLIC_KEYS:-[http://localhost:8585/api/v1/system/config/jwks]}
+      AUTHENTICATION_AUTHORITY: ${AUTHENTICATION_AUTHORITY:-https://accounts.google.com}
+      AUTHENTICATION_CLIENT_ID: ${AUTHENTICATION_CLIENT_ID:-""}
+      AUTHENTICATION_CALLBACK_URL: ${AUTHENTICATION_CALLBACK_URL:-""}
+      AUTHENTICATION_JWT_PRINCIPAL_CLAIMS: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS:-[email,preferred_username,sub]}
+      AUTHENTICATION_ENABLE_SELF_SIGNUP: ${AUTHENTICATION_ENABLE_SELF_SIGNUP:-true}
+
+      # JWT Configuration
+      RSA_PUBLIC_KEY_FILE_PATH: ${RSA_PUBLIC_KEY_FILE_PATH:-"./conf/public_key.der"}
+      RSA_PRIVATE_KEY_FILE_PATH: ${RSA_PRIVATE_KEY_FILE_PATH:-"./conf/private_key.der"}
+      JWT_ISSUER: ${JWT_ISSUER:-"open-metadata.org"}
+      JWT_KEY_ID: ${JWT_KEY_ID:-"Gb389a-9f76-gdjs-a92j-0242bk94356"}
+      # OpenMetadata Server Pipeline Service Client Configuration
+      PIPELINE_SERVICE_CLIENT_ENDPOINT: ${PIPELINE_SERVICE_CLIENT_ENDPOINT:-http://airflow-webserver:8080}
+      PIPELINE_SERVICE_CLIENT_HEALTH_CHECK_INTERVAL: ${PIPELINE_SERVICE_CLIENT_HEALTH_CHECK_INTERVAL:-300}
+      SERVER_HOST_API_URL: ${SERVER_HOST_API_URL:-http://openmetadata-server:8585/api}
+      PIPELINE_SERVICE_CLIENT_VERIFY_SSL: ${PIPELINE_SERVICE_CLIENT_VERIFY_SSL:-"no-ssl"}
+      PIPELINE_SERVICE_CLIENT_SSL_CERT_PATH: ${PIPELINE_SERVICE_CLIENT_SSL_CERT_PATH:-""}
+      #Database configuration for postgresql
+      DB_DRIVER_CLASS: ${DB_DRIVER_CLASS:-org.postgresql.Driver}
+      DB_SCHEME: ${DB_SCHEME:-postgresql}
+      DB_USE_SSL: ${DB_USE_SSL:-false}
+      DB_USER: ${DB_USER:-openmetadata_user}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD:-openmetadata_password}
+      DB_HOST: ${DB_HOST:-postgresql}
+      DB_PORT: ${DB_PORT:-5432}
+      OM_DATABASE: ${OM_DATABASE:-openmetadata_db}
+      # ElasticSearch Configurations
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST:- elasticsearch}
+      ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT:-9200}
+      ELASTICSEARCH_SCHEME: ${ELASTICSEARCH_SCHEME:-http}
+      ELASTICSEARCH_USER: ${ELASTICSEARCH_USER:-""}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-""}
+      SEARCH_TYPE: ${SEARCH_TYPE:- "elasticsearch"}
+      ELASTICSEARCH_TRUST_STORE_PATH: ${ELASTICSEARCH_TRUST_STORE_PATH:-""}
+      ELASTICSEARCH_TRUST_STORE_PASSWORD: ${ELASTICSEARCH_TRUST_STORE_PASSWORD:-""}
+      ELASTICSEARCH_CONNECTION_TIMEOUT_SECS: ${ELASTICSEARCH_CONNECTION_TIMEOUT_SECS:-5}
+      ELASTICSEARCH_SOCKET_TIMEOUT_SECS: ${ELASTICSEARCH_SOCKET_TIMEOUT_SECS:-60}
+      ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS: ${ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS:-600}
+      ELASTICSEARCH_BATCH_SIZE: ${ELASTICSEARCH_BATCH_SIZE:-10}
+      ELASTICSEARCH_INDEX_MAPPING_LANG: ${ELASTICSEARCH_INDEX_MAPPING_LANG:-EN}
+
+      #eventMonitoringConfiguration
+      EVENT_MONITOR: ${EVENT_MONITOR:-prometheus}
+      EVENT_MONITOR_BATCH_SIZE: ${EVENT_MONITOR_BATCH_SIZE:-10}
+      EVENT_MONITOR_PATH_PATTERN: ${EVENT_MONITOR_PATH_PATTERN:-["/api/v1/tables/*", "/api/v1/health-check"]}
+      EVENT_MONITOR_LATENCY: ${EVENT_MONITOR_LATENCY:-[]}
+
+      #pipelineServiceClientConfiguration
+      PIPELINE_SERVICE_CLIENT_CLASS_NAME: ${PIPELINE_SERVICE_CLIENT_CLASS_NAME:-"org.openmetadata.service.clients.pipeline.airflow.AirflowRESTClient"}
+      PIPELINE_SERVICE_IP_INFO_ENABLED: ${PIPELINE_SERVICE_IP_INFO_ENABLED:-false}
+      PIPELINE_SERVICE_CLIENT_HOST_IP: ${PIPELINE_SERVICE_CLIENT_HOST_IP:-""}
+      PIPELINE_SERVICE_CLIENT_SECRETS_MANAGER_LOADER: ${PIPELINE_SERVICE_CLIENT_SECRETS_MANAGER_LOADER:-"noop"}
+      #airflow parameters
+      AIRFLOW_USERNAME: ${AIRFLOW_USERNAME:-airflow}
+      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:-airflow}
+      AIRFLOW_TIMEOUT: ${AIRFLOW_TIMEOUT:-10}
+      AIRFLOW_TRUST_STORE_PATH: ${AIRFLOW_TRUST_STORE_PATH:-""}
+      AIRFLOW_TRUST_STORE_PASSWORD: ${AIRFLOW_TRUST_STORE_PASSWORD:-""}
+      FERNET_KEY: ${FERNET_KEY:-jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA=}
+
+      #secretsManagerConfiguration
+      SECRET_MANAGER: ${SECRET_MANAGER:-noop}
+      #parameters:
+      OM_SM_REGION: ${OM_SM_REGION:-""}
+      OM_SM_ACCESS_KEY_ID: ${OM_SM_ACCESS_KEY_ID:-""}
+      OM_SM_ACCESS_KEY: ${OM_SM_ACCESS_KEY:-""}
+
+      #email configuration:
+      OM_EMAIL_ENTITY: ${OM_EMAIL_ENTITY:-"OpenMetadata"}
+      OM_SUPPORT_URL: ${OM_SUPPORT_URL:-"https://slack.open-metadata.org"}
+      AUTHORIZER_ENABLE_SMTP : ${AUTHORIZER_ENABLE_SMTP:-false}
+      OPENMETADATA_SERVER_URL: ${OPENMETADATA_SERVER_URL:-""}
+      OPENMETADATA_SMTP_SENDER_MAIL: ${OPENMETADATA_SMTP_SENDER_MAIL:-""}
+      SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
+      SMTP_SERVER_PORT: ${SMTP_SERVER_PORT:-""}
+      SMTP_SERVER_USERNAME: ${SMTP_SERVER_USERNAME:-""}
+      SMTP_SERVER_PWD: ${SMTP_SERVER_PWD:-""}
+      SMTP_SERVER_STRATEGY: ${SMTP_SERVER_STRATEGY:-"SMTP_TLS"}
+
+      #changeEventConfig
+      OM_URI: ${OM_URI:- "http://localhost:8585"}
+
+      #extensionConfiguration
+      OM_RESOURCE_PACKAGES: ${OM_RESOURCE_PACKAGES:-[]}
+      OM_EXTENSIONS: ${OM_EXTENSIONS:-[]}
+
+      # Heap OPTS Configurations
+      OPENMETADATA_HEAP_OPTS: ${OPENMETADATA_HEAP_OPTS:--Xmx1G -Xms1G}
+      # Application Config
+      OM_CUSTOM_LOGO_URL_PATH: ${OM_CUSTOM_LOGO_URL_PATH:-""}
+      OM_CUSTOM_MONOGRAM_URL_PATH: ${OM_CUSTOM_MONOGRAM_URL_PATH:-""}
+      OM_MAX_FAILED_LOGIN_ATTEMPTS: ${OM_MAX_FAILED_LOGIN_ATTEMPTS:-3}
+      OM_LOGIN_ACCESS_BLOCK_TIME: ${OM_LOGIN_ACCESS_BLOCK_TIME:-600}
+      OM_JWT_EXPIRY_TIME: ${OM_JWT_EXPIRY_TIME:-3600}
+      # Mask passwords values in UI
+      MASK_PASSWORDS_API: ${MASK_PASSWORDS_API:-false}
+
+      #OpenMetadata Web Configuration
+      WEB_CONF_URI_PATH: ${WEB_CONF_URI_PATH:-"/api"}
+      #HSTS
+      WEB_CONF_HSTS_ENABLED: ${WEB_CONF_HSTS_ENABLED:-false}
+      WEB_CONF_HSTS_MAX_AGE: ${WEB_CONF_HSTS_MAX_AGE:-"365 days"}
+      WEB_CONF_HSTS_INCLUDE_SUBDOMAINS: ${WEB_CONF_HSTS_INCLUDE_SUBDOMAINS:-"true"}
+      WEB_CONF_HSTS_PRELOAD: ${WEB_CONF_HSTS_PRELOAD:-"true"}
+      #Frame Options
+      WEB_CONF_FRAME_OPTION_ENABLED: ${WEB_CONF_FRAME_OPTION_ENABLED:-false}
+      WEB_CONF_FRAME_OPTION: ${WEB_CONF_FRAME_OPTION:-"SAMEORIGIN"}
+      WEB_CONF_FRAME_ORIGIN: ${WEB_CONF_FRAME_ORIGIN:-""}
+      #Content Type
+      WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED: ${WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED:-false}
+      #XSS-Protection  
+      WEB_CONF_XSS_PROTECTION_ENABLED: ${WEB_CONF_XSS_PROTECTION_ENABLED:-false}
+      WEB_CONF_XSS_PROTECTION_ON: ${WEB_CONF_XSS_PROTECTION_ON:-true}
+      WEB_CONF_XSS_PROTECTION_BLOCK: ${WEB_CONF_XSS_PROTECTION_BLOCK:-true}
+      #CSP    
+      WEB_CONF_XSS_CSP_ENABLED: ${WEB_CONF_XSS_CSP_ENABLED:-false}
+      WEB_CONF_XSS_CSP_POLICY: ${WEB_CONF_XSS_CSP_POLICY:-"default-src 'self'"}
+      WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY: ${WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY:-""}
+      #Referrer-Policy
+      WEB_CONF_REFERRER_POLICY_ENABLED: ${WEB_CONF_REFERRER_POLICY_ENABLED:-false}
+      WEB_CONF_REFERRER_POLICY_OPTION: ${WEB_CONF_REFERRER_POLICY_OPTION:-"SAME_ORIGIN"}
+      #Permission-Policy
+      WEB_CONF_PERMISSION_POLICY_ENABLED: ${WEB_CONF_PERMISSION_POLICY_ENABLED:-false}
+      WEB_CONF_PERMISSION_POLICY_OPTION: ${WEB_CONF_PERMISSION_POLICY_OPTION:-""}
+    depends_on:
+      elasticsearch:
+        condition: service_started
+      postgresql:
+        condition: service_healthy
+    # networks:
+    #   - app_net
+
+  openmetadata-server:
+    container_name: openmetadata_server
+    restart: always
+    image: docker.getcollate.io/openmetadata/server:1.1.7
+    environment:
+      OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
+      SERVER_PORT: ${SERVER_PORT:-8585}
+      SERVER_ADMIN_PORT: ${SERVER_ADMIN_PORT:-8586}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # OpenMetadata Server Authentication Configuration
+      AUTHORIZER_CLASS_NAME: ${AUTHORIZER_CLASS_NAME:-org.openmetadata.service.security.DefaultAuthorizer}
+      AUTHORIZER_REQUEST_FILTER: ${AUTHORIZER_REQUEST_FILTER:-org.openmetadata.service.security.JwtFilter}
+      AUTHORIZER_ADMIN_PRINCIPALS: ${AUTHORIZER_ADMIN_PRINCIPALS:-[admin]}
+      AUTHORIZER_ALLOWED_REGISTRATION_DOMAIN: ${AUTHORIZER_ALLOWED_REGISTRATION_DOMAIN:-["all"]}
+      AUTHORIZER_INGESTION_PRINCIPALS: ${AUTHORIZER_INGESTION_PRINCIPALS:-[ingestion-bot]}
+      AUTHORIZER_PRINCIPAL_DOMAIN: ${AUTHORIZER_PRINCIPAL_DOMAIN:-"openmetadata.org"}
+      AUTHORIZER_ENFORCE_PRINCIPAL_DOMAIN: ${AUTHORIZER_ENFORCE_PRINCIPAL_DOMAIN:-false}
+      AUTHORIZER_ENABLE_SECURE_SOCKET: ${AUTHORIZER_ENABLE_SECURE_SOCKET:-false}
+      AUTHENTICATION_PROVIDER: ${AUTHENTICATION_PROVIDER:-basic}
+      CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME: ${CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME:-""}
+      AUTHENTICATION_PUBLIC_KEYS: ${AUTHENTICATION_PUBLIC_KEYS:-[http://localhost:8585/api/v1/system/config/jwks]}
+      AUTHENTICATION_AUTHORITY: ${AUTHENTICATION_AUTHORITY:-https://accounts.google.com}
+      AUTHENTICATION_CLIENT_ID: ${AUTHENTICATION_CLIENT_ID:-""}
+      AUTHENTICATION_CALLBACK_URL: ${AUTHENTICATION_CALLBACK_URL:-""}
+      AUTHENTICATION_JWT_PRINCIPAL_CLAIMS: ${AUTHENTICATION_JWT_PRINCIPAL_CLAIMS:-[email,preferred_username,sub]}
+      AUTHENTICATION_ENABLE_SELF_SIGNUP: ${AUTHENTICATION_ENABLE_SELF_SIGNUP:-true}
+
+      # JWT Configuration
+      RSA_PUBLIC_KEY_FILE_PATH: ${RSA_PUBLIC_KEY_FILE_PATH:-"./conf/public_key.der"}
+      RSA_PRIVATE_KEY_FILE_PATH: ${RSA_PRIVATE_KEY_FILE_PATH:-"./conf/private_key.der"}
+      JWT_ISSUER: ${JWT_ISSUER:-"open-metadata.org"}
+      JWT_KEY_ID: ${JWT_KEY_ID:-"Gb389a-9f76-gdjs-a92j-0242bk94356"}
+      JWT_ENABLED: true
+      # OpenMetadata Server Pipeline Service Client Configuration
+      PIPELINE_SERVICE_CLIENT_ENDPOINT: ${PIPELINE_SERVICE_CLIENT_ENDPOINT:-http://airflow-webserver:8080}
+      PIPELINE_SERVICE_CLIENT_HEALTH_CHECK_INTERVAL: ${PIPELINE_SERVICE_CLIENT_HEALTH_CHECK_INTERVAL:-300}
+      SERVER_HOST_API_URL: ${SERVER_HOST_API_URL:-http://openmetadata-server:8585/api}
+      PIPELINE_SERVICE_CLIENT_VERIFY_SSL: ${PIPELINE_SERVICE_CLIENT_VERIFY_SSL:-"no-ssl"}
+      PIPELINE_SERVICE_CLIENT_SSL_CERT_PATH: ${PIPELINE_SERVICE_CLIENT_SSL_CERT_PATH:-""}
+      #Database configuration for postgresql
+      DB_DRIVER_CLASS: ${DB_DRIVER_CLASS:-org.postgresql.Driver}
+      DB_SCHEME: ${DB_SCHEME:-postgresql}
+      DB_USE_SSL: ${DB_USE_SSL:-false}
+      DB_USER: ${DB_USER:-openmetadata_user}
+      DB_USER_PASSWORD: ${DB_USER_PASSWORD:-openmetadata_password}
+      DB_HOST: ${DB_HOST:-postgresql}
+      DB_PORT: ${DB_PORT:-5432}
+      OM_DATABASE: ${OM_DATABASE:-openmetadata_db}
+      # ElasticSearch Configurations
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST:- elasticsearch}
+      ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT:-9200}
+      ELASTICSEARCH_SCHEME: ${ELASTICSEARCH_SCHEME:-http}
+      ELASTICSEARCH_USER: ${ELASTICSEARCH_USER:-""}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD:-""}
+      SEARCH_TYPE: ${SEARCH_TYPE:- "elasticsearch"}
+      ELASTICSEARCH_TRUST_STORE_PATH: ${ELASTICSEARCH_TRUST_STORE_PATH:-""}
+      ELASTICSEARCH_TRUST_STORE_PASSWORD: ${ELASTICSEARCH_TRUST_STORE_PASSWORD:-""}
+      ELASTICSEARCH_CONNECTION_TIMEOUT_SECS: ${ELASTICSEARCH_CONNECTION_TIMEOUT_SECS:-5}
+      ELASTICSEARCH_SOCKET_TIMEOUT_SECS: ${ELASTICSEARCH_SOCKET_TIMEOUT_SECS:-60}
+      ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS: ${ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS:-600}
+      ELASTICSEARCH_BATCH_SIZE: ${ELASTICSEARCH_BATCH_SIZE:-10}
+      ELASTICSEARCH_INDEX_MAPPING_LANG: ${ELASTICSEARCH_INDEX_MAPPING_LANG:-EN}
+
+      #eventMonitoringConfiguration
+      EVENT_MONITOR: ${EVENT_MONITOR:-prometheus}
+      EVENT_MONITOR_BATCH_SIZE: ${EVENT_MONITOR_BATCH_SIZE:-10}
+      EVENT_MONITOR_PATH_PATTERN: ${EVENT_MONITOR_PATH_PATTERN:-["/api/v1/tables/*", "/api/v1/health-check"]}
+      EVENT_MONITOR_LATENCY: ${EVENT_MONITOR_LATENCY:-[]}
+
+      #pipelineServiceClientConfiguration
+      PIPELINE_SERVICE_CLIENT_CLASS_NAME: ${PIPELINE_SERVICE_CLIENT_CLASS_NAME:-"org.openmetadata.service.clients.pipeline.airflow.AirflowRESTClient"}
+      PIPELINE_SERVICE_IP_INFO_ENABLED: ${PIPELINE_SERVICE_IP_INFO_ENABLED:-false}
+      PIPELINE_SERVICE_CLIENT_HOST_IP: ${PIPELINE_SERVICE_CLIENT_HOST_IP:-""}
+      PIPELINE_SERVICE_CLIENT_SECRETS_MANAGER_LOADER: ${PIPELINE_SERVICE_CLIENT_SECRETS_MANAGER_LOADER:-"noop"}
+      #airflow parameters
+      AIRFLOW_USERNAME: ${AIRFLOW_USERNAME:-airflow}
+      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:-airflow}
+      AIRFLOW_TIMEOUT: ${AIRFLOW_TIMEOUT:-10}
+      AIRFLOW_TRUST_STORE_PATH: ${AIRFLOW_TRUST_STORE_PATH:-""}
+      AIRFLOW_TRUST_STORE_PASSWORD: ${AIRFLOW_TRUST_STORE_PASSWORD:-""}
+      FERNET_KEY: ${FERNET_KEY:-jJ/9sz0g0OHxsfxOoSfdFdmk3ysNmPRnH3TUAbz3IHA=}
+
+      #secretsManagerConfiguration
+      SECRET_MANAGER: ${SECRET_MANAGER:-noop}
+      #parameters:
+      OM_SM_REGION: ${OM_SM_REGION:-""}
+      OM_SM_ACCESS_KEY_ID: ${OM_SM_ACCESS_KEY_ID:-""}
+      OM_SM_ACCESS_KEY: ${OM_SM_ACCESS_KEY:-""}
+      
+      #email configuration:
+      OM_EMAIL_ENTITY: ${OM_EMAIL_ENTITY:-"OpenMetadata"}
+      OM_SUPPORT_URL: ${OM_SUPPORT_URL:-"https://slack.open-metadata.org"}
+      AUTHORIZER_ENABLE_SMTP : ${AUTHORIZER_ENABLE_SMTP:-false}
+      OPENMETADATA_SERVER_URL: ${OPENMETADATA_SERVER_URL:-""}
+      OPENMETADATA_SMTP_SENDER_MAIL: ${OPENMETADATA_SMTP_SENDER_MAIL:-""}
+      SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
+      SMTP_SERVER_PORT: ${SMTP_SERVER_PORT:-""}
+      SMTP_SERVER_USERNAME: ${SMTP_SERVER_USERNAME:-""}
+      SMTP_SERVER_PWD: ${SMTP_SERVER_PWD:-""}
+      SMTP_SERVER_STRATEGY: ${SMTP_SERVER_STRATEGY:-"SMTP_TLS"}
+
+      #changeEventConfig
+      OM_URI: ${OM_URI:- "http://localhost:8585"}
+
+      #extensionConfiguration
+      OM_RESOURCE_PACKAGES: ${OM_RESOURCE_PACKAGES:-[]}
+      OM_EXTENSIONS: ${OM_EXTENSIONS:-[]}
+
+      # Heap OPTS Configurations
+      OPENMETADATA_HEAP_OPTS: ${OPENMETADATA_HEAP_OPTS:--Xmx1G -Xms1G}
+      # Application Config
+      OM_CUSTOM_LOGO_URL_PATH: ${OM_CUSTOM_LOGO_URL_PATH:-""}
+      OM_CUSTOM_MONOGRAM_URL_PATH: ${OM_CUSTOM_MONOGRAM_URL_PATH:-""}
+      OM_MAX_FAILED_LOGIN_ATTEMPTS: ${OM_MAX_FAILED_LOGIN_ATTEMPTS:-3}
+      OM_LOGIN_ACCESS_BLOCK_TIME: ${OM_LOGIN_ACCESS_BLOCK_TIME:-600}
+      OM_JWT_EXPIRY_TIME: ${OM_JWT_EXPIRY_TIME:-3600}
+      # Mask passwords values in UI
+      MASK_PASSWORDS_API: ${MASK_PASSWORDS_API:-false}
+      
+      #OpenMetadata Web Configuration
+      WEB_CONF_URI_PATH: ${WEB_CONF_URI_PATH:-"/api"}
+      #HSTS
+      WEB_CONF_HSTS_ENABLED: ${WEB_CONF_HSTS_ENABLED:-false}
+      WEB_CONF_HSTS_MAX_AGE: ${WEB_CONF_HSTS_MAX_AGE:-"365 days"}
+      WEB_CONF_HSTS_INCLUDE_SUBDOMAINS: ${WEB_CONF_HSTS_INCLUDE_SUBDOMAINS:-"true"}
+      WEB_CONF_HSTS_PRELOAD: ${WEB_CONF_HSTS_PRELOAD:-"true"}
+      #Frame Options
+      WEB_CONF_FRAME_OPTION_ENABLED: ${WEB_CONF_FRAME_OPTION_ENABLED:-false}
+      WEB_CONF_FRAME_OPTION: ${WEB_CONF_FRAME_OPTION:-"SAMEORIGIN"}
+      WEB_CONF_FRAME_ORIGIN: ${WEB_CONF_FRAME_ORIGIN:-""}
+      #Content Type
+      WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED: ${WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED:-false}
+      #XSS-Protection  
+      WEB_CONF_XSS_PROTECTION_ENABLED: ${WEB_CONF_XSS_PROTECTION_ENABLED:-false}
+      WEB_CONF_XSS_PROTECTION_ON: ${WEB_CONF_XSS_PROTECTION_ON:-true}
+      WEB_CONF_XSS_PROTECTION_BLOCK: ${WEB_CONF_XSS_PROTECTION_BLOCK:-true}
+      #CSP    
+      WEB_CONF_XSS_CSP_ENABLED: ${WEB_CONF_XSS_CSP_ENABLED:-false}
+      WEB_CONF_XSS_CSP_POLICY: ${WEB_CONF_XSS_CSP_POLICY:-"default-src 'self'"}
+      WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY: ${WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY:-""}
+      
+    expose:
+      - 8585
+      - 8586
+    ports:
+      - "8585:8585"
+      - "8586:8586"
+    depends_on:
+      elasticsearch:
+        condition: service_started
+      postgresql:
+        condition: service_healthy
+      execute-migrate-all:
+        condition: service_completed_successfully
+    # networks:
+    #   - app_net
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider",  "http://localhost:8586/healthcheck" ]
 volumes:
   minio-storage:
+  mysql-openmetadata:
+  ingestion-volume-dag-airflow:
+  ingestion-volume-dags:
+  ingestion-volume-tmp:
+  e-data:
+  postgres-db-volume:
