@@ -1,0 +1,12 @@
+pcaf:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      host: trino
+      user: admin
+      #password: <password>
+      port: 8080
+      database: hive
+      schema: pcaf
+      threads: 1

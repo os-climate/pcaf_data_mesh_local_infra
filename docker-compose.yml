@@ -91,7 +91,9 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
       /usr/bin/mc mb --ignore-existing myminio/unfccc-raw;
-      /usr/bin/mc anonymous set public myminio/unfccc-raw;
+      /usr/bin/mc anonymous set public myminio/unfccc-raw;      
+      /usr/bin/mc mb --ignore-existing myminio/pcaf;
+      /usr/bin/mc anonymous set public myminio/pcaf;
       exit 0;
       "
 
@@ -110,7 +112,7 @@ services:
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - S3_ENDPOINT_URL=http://minio:9000
-      - S3_BUCKET=unfccc-raw
+      - S3_BUCKET=pcaf
       - S3_PREFIX=data
     ports:
       - '9083:9083'
@@ -310,9 +312,18 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  ###########################################################
-  ## OPEN METADATA
-  ##########################################################
+
+  jupyter:
+      build: 
+        context: .
+        dockerfile: ./docker/jupyter/Dockerfile
+      ports: 
+        - 8888:8888
+      volumes:
+        - ./notebooks:/home/jovyan/work/
+        - ./dbt:/home/jovyan/dbt
+      container_name: jupyter
+      command: "start-notebook.sh --NotebookApp.token="
 
   postgresql:
     container_name: openmetadata_postgresql
