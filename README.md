@@ -26,7 +26,7 @@ all DAG  must be added to the filder airflow/dags/
 ## Adding dependencies
 if any of your DAG need dependency python packaged , the dependencies should be added to " Dockerfile located in root of the project 
 
-# Example : RUN pip install apache-airflow-providers-trino
+Example : RUN pip install apache-airflow-providers-trino
 
 ## OpenmetaData integration configuration 
 Airflow required to have authendication token from MetaData server to get auhtendicaed to send leanage data back to OpenMetaData. Currently this token by default generated from Open MetaData application. In order to get tocken, after run the "docker compose up", You need to login to OpenMeta applcation with the following credential 
