@@ -7,7 +7,7 @@ make sure existing images , conatianes and volumes are  removed before builidng 
     
     docker compose rm -fsv 
 
-# build new image.  
+# Build new image.  
 
     docker compose build --no-cache 
 
@@ -19,7 +19,7 @@ make sure existing images , conatianes and volumes are  removed before builidng 
 
     docker compose up <service Name>
 
-## adding new DAG to your project
+## Adding new DAG to your project
 
 all DAG  must be added to the filder airflow/dags/
 
@@ -35,6 +35,6 @@ user id  -   admin
 pasword  - admin
 and then copy the token from openMetaData applcation by navigating to ( settings--> BOT --> ingestion-bot --> ) and update environment variable "AIRFLOW__LINEAGE__JWT_TOKEN" to the docker-compose.xml file located in the root of the project . 
 
-## restart only Airflow coontainer 
+## Restart only Airflow container 
 
     docker compose up airflow-webserver
