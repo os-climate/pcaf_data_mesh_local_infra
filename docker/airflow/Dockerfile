@@ -14,10 +14,10 @@ RUN pip install --no-cache-dir "apache-airflow==2.7.3" \
                     astronomer-cosmos 
 
 # install dbt into a virtual environment
-WORKDIR /usr/local/airflow/
+#WORKDIR /usr/local/airflow/
 ENV PIP_USER=false
 RUN python -m venv dbt_venv && source dbt_venv/bin/activate && \
      pip install --no-cache-dir dbt-trino && deactivate
 ENV PIP_USER=true
-ENV PATH="$PATH:/usr/local/airflow/dbt_venv/bin"
+ENV PATH="$PATH:/opt/airflow/dbt_venv/bin"
 ENV AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT="120.0"

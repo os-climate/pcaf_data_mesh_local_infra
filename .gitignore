@@ -1,2 +1,4 @@
 airflow/dags/__pycache__
 airflow/logs/**
+
+*.ipynb_checkpoints*
