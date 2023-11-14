@@ -7,7 +7,7 @@ make sure existing images , conatianes and volumes are  removed before builidng 
     
     docker compose rm -fsv 
 
-# Build new image.  
+## Build new image.  
 
     docker compose build --no-cache 
 
