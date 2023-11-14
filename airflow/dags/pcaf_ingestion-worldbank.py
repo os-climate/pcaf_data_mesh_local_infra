@@ -38,4 +38,26 @@ with DAG(
                     parquet_bytes = df.to_parquet(compression='gzip')
                     s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key=f"worldbank/worldbank.parquet", replace=True)
 
-    load_data_to_s3_bucket()
+    trino_create_schema = TrinoOperator(
+        task_id="trino_create_schema",
+        trino_conn_id="trino_connection",
+        sql=f"CREATE SCHEMA IF NOT EXISTS hive.pcaf WITH (location = 's3a://pcaf/')",
+        handler=list,
+    )
+
+    trino_create_worldbank_table = TrinoOperator(
+        task_id="trino_create_worldbank_table",
+        trino_conn_id="trino_connection",
+        sql=f"""create table if not exists hive.pcaf.worldbank (
+                        "Country Name" varchar,"Country Code" varchar,"Indicator Name" varchar,"Indicator Code" varchar,"1960" double,"1961" double,"1962" double,"1963" double,"1964" double,"1965" double,"1966" double,"1967" double,"1968" double,"1969" double,"1970" double,"1971" double,"1972" double,"1973" double,"1974" double,"1975" double,"1976" double,"1977" double,"1978" double,"1979" double,"1980" double,"1981" double,"1982" double,"1983" double,"1984" double,"1985" double,"1986" double,"1987" double,"1988" double,"1989" double,"1990" double,"1991" double,"1992" double,"1993" double,"1994" double,"1995" double,"1996" double,"1997" double,"1998" double,"1999" double,"2000" double,"2001" double,"2002" double,"2003" double,"2004" double,"2005" double,"2006" double,"2007" double,"2008" double,"2009" double,"2010" double,"2011" double,"2012" double,"2013" double,"2014" double,"2015" double,"2016" double,"2017" double,"2018" double,"2019" double,"2020" double,"2021" double,"2022" double
+                        )
+                        with (
+                         external_location = 's3a://pcaf/worldbank/',
+                         format = 'PARQUET'
+                        )""",
+        handler=list,
+        outlets=['hive.pcaf.worldbank']
+    )
+
+
+    load_data_to_s3_bucket()  >> trino_create_schema >> trino_create_worldbank_table

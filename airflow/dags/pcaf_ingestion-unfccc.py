@@ -38,4 +38,56 @@ with DAG(
                 parquet_bytes = df.to_parquet(compression='gzip')
                 s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key=parquet_file_name, replace=True)
 
-    load_data_to_s3_bucket() 
+
+    trino_create_schema = TrinoOperator(
+        task_id="trino_create_schema",
+        trino_conn_id="trino_connection",
+        sql=f"CREATE SCHEMA IF NOT EXISTS hive.pcaf WITH (location = 's3a://pcaf/')",
+        handler=list,
+    )
+
+    trino_create_annexi_table = TrinoOperator(
+        task_id="trino_create_annexi_table",
+        trino_conn_id="trino_connection",
+        sql=f"""create table if not exists hive.pcaf.annexI (
+                    party varchar,
+                    category varchar,
+                    classification varchar,
+                    measure varchar,
+                    gas varchar,
+                    unit varchar,
+                    year varchar,
+                    numberValue double,
+                    stringValue varchar
+                    )
+                    with (
+                     external_location = 's3a://pcaf/data/annexi',
+                     format = 'PARQUET'
+                    )""",
+        handler=list,
+        outlets=['hive.pcaf.annexi']
+    )
+
+    trino_create_non_annexi_table = TrinoOperator(
+        task_id="trino_create_non_annexi_table",
+        trino_conn_id="trino_connection",
+        sql=f"""create table if not exists hive.pcaf.non_annexi (
+                    party varchar,
+                    category varchar,
+                    classification varchar,
+                    measure varchar,
+                    gas varchar,
+                    unit varchar,
+                    year varchar,
+                    numberValue double,
+                    stringValue varchar
+                    )
+                    with (
+                     external_location = 's3a://pcaf/data/non-annexi',
+                     format = 'PARQUET'
+                    )""",
+        handler=list,
+        outlets=['hive.pcaf.non_annexi']
+    )
+
+    load_data_to_s3_bucket()  >> trino_create_schema >> [trino_create_annexi_table, trino_create_non_annexi_table]

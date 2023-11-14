@@ -321,7 +321,6 @@ services:
         - 8888:8888
       volumes:
         - ./notebooks:/home/jovyan/work/
-        - ./dbt:/home/jovyan/dbt
       container_name: jupyter
       command: "start-notebook.sh --NotebookApp.token="
 

@@ -15,11 +15,11 @@ project_config = ProjectConfig(
 )
 
 execution_config = ExecutionConfig(
-        dbt_executable_path="/usr/local/airflow/dbt_venv/bin/dbt",
+        dbt_executable_path="/opt/airflow/dbt_venv/bin/dbt",
 )
 
 with DAG(
-    dag_id="extract_dag",
+    dag_id="unfccc_dbt_transformation",
     start_date=datetime(2021, 1, 1, tz="UTC"),
     schedule_interval="@daily", catchup=False
 ):
