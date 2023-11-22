@@ -9,10 +9,12 @@ RUN apt-get update \
 #ADD requirements.txt . 
 USER airflow
 
-RUN pip install apache-airflow-providers-trino 
-RUN pip install openmetadata-managed-apis~=1.1.7.2 
-RUN pip install openmetadata-ingestion==1.1.7.2
-RUN pip install astronomer-cosmos==1.2.4
+
+RUN pip install apache-airflow-providers-trino \
+                openmetadata-managed-apis~=1.2.0 \
+                openmetadata-ingestion==1.2.0 \
+                astronomer-cosmos \
+                typing-extensions==4.5.0
 
 RUN mkdir -p /opt/airflow/dag_generated_configs
 
