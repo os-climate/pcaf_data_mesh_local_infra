@@ -21,6 +21,9 @@ with DAG(
         from airflow.providers.amazon.aws.hooks.s3 import S3Hook
         url = "https://zenodo.org/records/8159736/files/parquet-only.zip"
         local_file = "parquet-only.zip"
+        if os.path.isfile(local_file):
+             os.remove(local_file)   
+
         if not os.path.isfile(local_file):
             with urllib.request.urlopen(url) as file:
                 with open(local_file, "wb") as new_file:

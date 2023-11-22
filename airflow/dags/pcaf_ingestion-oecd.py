@@ -24,7 +24,9 @@ with DAG(
         from airflow.providers.amazon.aws.hooks.s3 import S3Hook
         url = "https://stats.oecd.org/sdmx-json/data/IO_GHG_2021/IMGR_FCO2+EXGR_DCO2...DTOTAL+D35/all?contentType=csv"
         query_parameters = {"downloadformat": "csv"}
-        local_file = "oecdlocal2.csv"
+        local_file = "oecd_api_data.csv"
+        if os.path.isfile(local_file):
+             os.remove(local_file)
 
         if not os.path.isfile(local_file):
             print('inside')
@@ -46,6 +48,9 @@ with DAG(
             df.columns=cols
             parquet_bytes = df.to_parquet(compression='gzip')
             s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key="/OECD/oecd.parquet", replace=True)
+        
+        if os.path.isfile(local_file):
+             os.remove(local_file)
 
     
     trino_create_schema = TrinoOperator(

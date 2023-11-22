@@ -18,8 +18,9 @@ execution_config = ExecutionConfig(
         dbt_executable_path="/opt/airflow/dbt_venv/bin/dbt",
 )
 
+
 with DAG(
-    dag_id="unfccc_dbt_transformation",
+    dag_id="pcaf_unfccc_dbt_transformation",
     start_date=datetime(2021, 1, 1, tz="UTC"),
     schedule_interval="@daily", catchup=False
 ):
@@ -28,7 +29,8 @@ with DAG(
     dbt_tg = DbtTaskGroup(
         project_config=project_config,
         profile_config=profile_config,
-        execution_config = execution_config
+        execution_config = execution_config,
+        operator_args={"install_deps": True},
     )
 
     e2 = EmptyOperator(task_id="post_dbt")

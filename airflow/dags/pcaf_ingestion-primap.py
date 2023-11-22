@@ -21,7 +21,10 @@ with DAG(
         import urllib.request
         from airflow.providers.amazon.aws.hooks.s3 import S3Hook
         url = "https://zenodo.org/records/7727475/files/Guetschow-et-al-2023a-PRIMAP-hist_v2.4.2_final_no_rounding_09-Mar-2023.csv"
-        local_file = "localfile2.csv"
+        local_file = "Guetschow-et-al-2023a-PRIMAP-hist_v2.4.2_final_no_rounding_09-Mar-2023.csv"
+        if os.path.isfile(local_file):
+             os.remove(local_file)
+
         if not os.path.isfile(local_file):
             with urllib.request.urlopen(url) as file:
                 with open(local_file, "wb") as new_file:
@@ -34,7 +37,7 @@ with DAG(
             df = pd.read_csv(file_descriptor)
             parquet_bytes = df.to_parquet(compression='gzip')
             s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key="/PRIMAP/primap.parquet", replace=True)
-
+        
     trino_create_schema = TrinoOperator(
         task_id="trino_create_schema",
         trino_conn_id="trino_connection",

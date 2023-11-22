@@ -24,7 +24,7 @@ x-airflow-common:
 
     AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: 'airflow'
     AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE: 'openmetadata'
-    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE2OTgzNjY0MzksImV4cCI6bnVsbH0.Z_MtZySWQf1fUcTSwZuE1NA0XHiiyQHHhcZEjtPfoWJTpisUPBLCLedNL7k1n6GNz8iAW6SCcCwp3vZIZby_ukP2ZgksiLGicIp4VXxhQTlbmDqlDE1x9yJdoxXc72fNlMFlFMP-LphmgM7jcWSQ4HyXEoSkb03tZCZ49eff8JUwVSPrg-QG2Eze68ACqqRchQjJx8UbBekJhQ3qt_lTYf-MPs2dVzTaLsXqTeLuBc9b5S_XpXCMQHS50z4i-rOM3iHssSXzf1coC6tJNwlMQMmIcMqKoL71A2BBaDTR1QVxuKe5nMwwrzKVFz5HIP3CIe1R7YVqRTgBRWFpZTSc4g'
+    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE3MDA0OTIyNTEsImV4cCI6bnVsbH0.vw0AAQ9bOldd6QgvRuUX2b6HNX4Fhc7Z_NmMS_KDLSu2_QdF8dqzI0kuAevBo5NdyoXVUfgKFe6s6qROm0rME8GHXrWEDi48Y1dY-Y5v67FHBf9S93LdYRiO4upJVDZ6AN1Wf0xDCBAW-nDp3CQmKsJHO-ruE9GItDrJPtvEyazyWo41d0GgetB5-jd53Bgn8SpLpMOVVk10g9fbCwYh4XxCvYW23nUPD715FZEqG8Da7GhdH6Ff26XwBZqMwmB7-jvmmdtlSegn_dNQUUWRBRGjJBcxl0WjQArMp2m2ExgDM2tcDCMzZfXbaFbER3ghcsNgdBKnZqVvYLh0Xxt0XA'
     AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: 'http://openmetadata_server:8585/api'
 
     # yamllint disable rule:line-length
@@ -79,7 +79,7 @@ services:
   trino:
     image: trinodb/trino
     volumes:
-      - ${PWD}/trino/etc/catalog:/etc/trino/catalog
+      - ${PWD:-.}/trino/etc/catalog:/etc/trino/catalog
     ports:
       - '18080:8080'
 
