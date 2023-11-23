@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='view') }}
 
 with cte_base as (
 select validity_date, country_iso_code from {{ref('pcaf_unfccc_with_lulucf')}}
