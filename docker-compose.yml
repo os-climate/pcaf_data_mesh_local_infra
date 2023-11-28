@@ -24,8 +24,8 @@ x-airflow-common:
 
     AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: 'airflow'
     AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE: 'openmetadata'
-    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE3MDA2NjQ5MzYsImV4cCI6bnVsbH0.1hOypu1Bm7h-n2_rNjBpqV_UUffchjU2hrOnADv7wc72c-rOJMK05f-gX3jdnC5kqdbAjYOmd7kSjz41xtD0ru4niyNh7XzSWkbzOW-Y3xzwWLrHeWebz7fFjCEgDYIY8GsSbX8y2rzNxA3rWXFgM5ReU4eSt5aZ2uNNBrJcG72YDZ5-F9J9AzULwRw63I2Jf7Sihs2px4X25liPSiO4eN40ajw6VKolTFesogayJlf47qAHBJQ4hCG4noUzRgP88yqS6JjNpMNuIM_ysL8FtbNAW_Cp1BxtBYMw3KTuAJTlLuslq4E-9rFWOpdEbtxhzpWR-LTFaXXNgfe6q8xInw'
-    AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: 'http://openmetadata_server:8585/api'
+    AIRFLOW__LINEAGE__JWT_TOKEN: 'eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZyIsInN1YiI6ImluZ2VzdGlvbi1ib3QiLCJlbWFpbCI6ImluZ2VzdGlvbi1ib3RAb3Blbm1ldGFkYXRhLm9yZyIsImlzQm90Ijp0cnVlLCJ0b2tlblR5cGUiOiJCT1QiLCJpYXQiOjE3MDExNDc0OTgsImV4cCI6bnVsbH0.kx6fe6Fky2ptao8E4jg8RbjL4GwGztpX9sie307qt9V_Q29h7c-Nvgl248Kv9sNUHznn6Ol0JliBEvOCIAWYL4lbbpfI150BEx-A72jF0Z4NfzIk2q39G2DCPDDHIRxw61UWB1JQsSkD4KFBdDWXOltnBUgFc8jNwBFnUMxyAOo0XTWDR0MZco2hq1k08Tq_EcTtdBeqxdYdMapZqbssoMRbmBxzgfY4npPaiuUxaeScvq78eSJ0hyL-aZjhqxG3HuUyaa06ZXO4etwq7dQHEqDxRW8illj05u0ACaSiwjyAzmD9GUd-Qf5jT7lnk4J4czrQCE4g1wkfmlCe6GicNw'
+    AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: 'http://172.17.0.1:8585/api'
 
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
@@ -270,13 +270,14 @@ services:
     environment:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
+      _AIRFLOW_DB_UPGRADE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     volumes:
-      - ${AIRFLOW_PROJ_DIR:-.}:/sources
+      - ${AIRFLOW_PROJ_DIR:-.}/airflow:/sources
 
   airflow-cli:
     <<: *airflow-common
@@ -326,7 +327,7 @@ services:
 
   postgresql:
     container_name: openmetadata_postgresql
-    image: docker.getcollate.io/openmetadata/postgresql:1.2.0
+    image: docker.getcollate.io/openmetadata/postgresql:1.2.2
     restart: always
     command: "--work_mem=10MB"
     environment:
@@ -363,7 +364,7 @@ services:
 
   execute-migrate-all:
     container_name: execute_migrate_all
-    image: docker.getcollate.io/openmetadata/server:1.2.0
+    image: docker.getcollate.io/openmetadata/server:1.2.2
     command: "./bootstrap/bootstrap_storage.sh migrate-all"
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
@@ -521,7 +522,7 @@ services:
   openmetadata-server:
     container_name: openmetadata_server
     restart: always
-    image: docker.getcollate.io/openmetadata/server:1.2.0
+    image: docker.getcollate.io/openmetadata/server:1.2.2
     environment:
       OPENMETADATA_CLUSTER_NAME: ${OPENMETADATA_CLUSTER_NAME:-openmetadata}
       SERVER_PORT: ${SERVER_PORT:-8585}

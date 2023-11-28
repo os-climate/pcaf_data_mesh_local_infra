@@ -11,8 +11,8 @@ USER airflow
 
 
 RUN pip install apache-airflow-providers-trino \
-                openmetadata-managed-apis~=1.2.0 \
-                openmetadata-ingestion==1.2.0 \
+                openmetadata-managed-apis~=1.2.2 \
+                openmetadata-ingestion==1.2.2 \
                 astronomer-cosmos \
                 typing-extensions==4.5.0
 
