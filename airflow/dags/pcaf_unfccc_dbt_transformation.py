@@ -2,6 +2,7 @@ from pendulum import datetime
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from cosmos import DbtTaskGroup, ProfileConfig, ProjectConfig, ExecutionConfig
+from cosmos.operators import DbtDocsS3Operator
 
 
 profile_config = ProfileConfig(
@@ -33,6 +34,17 @@ with DAG(
         operator_args={"install_deps": True},
     )
 
+    generate_dbt_docs_aws = DbtDocsS3Operator(
+        task_id="generate_dbt_docs_aws",
+        project_dir="/opt/airflow/dags/dbt/pcaf",
+        profile_config=profile_config,
+        # docs-specific arguments
+        bucket_name="pcaf",
+        folder_dir="dbt_trino",
+        aws_conn_id="s3",
+        install_deps=True
+    )
+
     e2 = EmptyOperator(task_id="post_dbt")
 
-    e1 >> dbt_tg >> e2
+    e1 >> dbt_tg >> generate_dbt_docs_aws >> e2
