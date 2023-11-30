@@ -42,3 +42,11 @@ models:
             - validity_date
     config:
       tags: 'UNFCCC' 
+  - name: pcaf_primap
+  - name: pcaf_primap_source
+  - name: pcaf_unfccc_annexi_source
+  - name: pcaf_unfccc_nonannexi_source
+  - name: pcaf_wdi
+  - name: pcaf_wdi_source
+  - name: pcaf_unfccc_with_lulucf
+  - name: pcaf_unfccc_without_lulucf

@@ -13,8 +13,9 @@ USER airflow
 RUN pip install apache-airflow-providers-trino \
                 openmetadata-managed-apis~=1.2.0 \
                 openmetadata-ingestion==1.2.0 \
-                astronomer-cosmos \
-                typing-extensions==4.5.0
+                astronomer-cosmos==1.2.5 \
+                typing-extensions==4.5.0 \
+                dbt-artifacts-parser
 
 RUN mkdir -p /opt/airflow/dag_generated_configs
 
@@ -22,7 +23,7 @@ RUN mkdir -p /opt/airflow/dag_generated_configs
 #WORKDIR /usr/local/airflow/
 ENV PIP_USER=false
 RUN python -m venv dbt_venv && source dbt_venv/bin/activate && \
-     pip install --no-cache-dir dbt-trino && deactivate
+     pip install --no-cache-dir dbt-trino==1.6.2 && deactivate
 ENV PIP_USER=true
 ENV PATH="$PATH:/opt/airflow/dbt_venv/bin"
 
