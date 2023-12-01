@@ -47,7 +47,7 @@ with DAG(
                 cols[cols[cols == dup].index.values.tolist()] = [dup + '_' + str(i) if i != 0 else dup for i in range(sum(cols == dup))]
             df.columns=cols
             parquet_bytes = df.to_parquet(compression='gzip')
-            s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key="/OECD/oecd.parquet", replace=True)
+            s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key="raw/oecd/oecd.parquet", replace=True)
         
         if os.path.isfile(local_file):
              os.remove(local_file)
@@ -67,7 +67,7 @@ with DAG(
                         "var" varchar,"indicator" varchar,"cou" varchar,"country" varchar,"par" varchar,"partner" varchar,"ind" varchar,"industry" varchar,"time" bigint,"time_1" bigint,"unit code" varchar,"unit" varchar,"powercode code" bigint,"powercode" varchar,"reference period code" double,"reference period" double,"value" double,"flag codes" double,"flags" double
                         )
                         with (
-                         external_location = 's3a://pcaf/OECD/',
+                         external_location = 's3a://pcaf/raw/oecd/',
                          format = 'PARQUET'
                         )""",
         handler=list,

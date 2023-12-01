@@ -1,30 +1,25 @@
-{{ config(materialized='table') }}
+with unpivot_wdi as (
 
-with source_data as (
-
-   {{ dbt_utils.unpivot(relation=ref('pcaf_wdi_source'), 
+   {{ dbt_utils.unpivot(relation=ref('pcaf_wdi_staging'), 
               cast_to='double', 
-              exclude=['indicator_code',
-                       'country_name', 
-                       'country_code',
-                       'indicator_name'],
+              exclude=['country_name','country_iso_code', 'attribute','attribute_code'],
               field_name="validity_date",
               value_name="value",) }}
 
+),
+
+enhanced as
+( 
+    select attribute_code as src_indicator,
+            'WDI'             as data_provider,
+            country_name, 
+            country_iso_code,
+            attribute,
+            cast(replace(validity_date, 'year_', '') as int) as validity_date,
+            value,
+            'USD' as value_units
+    from unpivot_wdi
+    where value is not null
 )
 
-select indicator_code    as src_indicator,
-       'WDI'             as data_provider,
-        country_name     as country_name, 
-        country_code     as country_iso_code,
-        indicator_name   as attribute,
-        cast(replace(validity_date, 'year_', '') as int)    as validity_date,
-        value,
-        'USD' as value_units
-from source_data
-
-/*
-    Uncomment the line below to remove records with null `id` values
-*/
-
-where value is not null
+select * from enhanced

@@ -35,11 +35,10 @@ with DAG(
 
         s3_hook = S3Hook(aws_conn_id='s3')
         for parquet_file_name in zipfile.namelist():
-            print(parquet_file_name)
             with zipfile.open(parquet_file_name, "r") as file_descriptor:
                 df = pd.read_parquet(file_descriptor)
                 parquet_bytes = df.to_parquet(compression='gzip')
-                s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key=parquet_file_name, replace=True)
+                s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key='raw/unfccc/' + parquet_file_name.lower(), replace=True)
 
 
     trino_create_schema = TrinoOperator(
@@ -52,7 +51,7 @@ with DAG(
     trino_create_annexi_table = TrinoOperator(
         task_id="trino_create_annexi_table",
         trino_conn_id="trino_connection",
-        sql=f"""create table if not exists hive.pcaf.annexI (
+        sql=f"""create table if not exists hive.pcaf.annexi (
                     party varchar,
                     category varchar,
                     classification varchar,
@@ -64,7 +63,7 @@ with DAG(
                     stringValue varchar
                     )
                     with (
-                     external_location = 's3a://pcaf/data/annexi',
+                     external_location = 's3a://pcaf/raw/unfccc/data/annexi',
                      format = 'PARQUET'
                     )""",
         handler=list,
@@ -86,7 +85,7 @@ with DAG(
                     stringValue varchar
                     )
                     with (
-                     external_location = 's3a://pcaf/data/non-annexi',
+                     external_location = 's3a://pcaf/raw/unfccc/data/non-annexi',
                      format = 'PARQUET'
                     )""",
         handler=list,

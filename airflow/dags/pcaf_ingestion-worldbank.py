@@ -38,7 +38,7 @@ with DAG(
                 with zipfile.open(parquet_file_name, "r") as file_descriptor:
                     df = pd.read_csv(file_descriptor, skiprows=4, quotechar= '"')
                     parquet_bytes = df.to_parquet(compression='gzip')
-                    s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key=f"worldbank/worldbank.parquet", replace=True)
+                    s3_hook.load_bytes(parquet_bytes, bucket_name= "pcaf", key=f"raw/worldbank/worldbank.parquet", replace=True)
 
     trino_create_schema = TrinoOperator(
         task_id="trino_create_schema",
@@ -54,7 +54,7 @@ with DAG(
                         "Country Name" varchar,"Country Code" varchar,"Indicator Name" varchar,"Indicator Code" varchar,"1960" double,"1961" double,"1962" double,"1963" double,"1964" double,"1965" double,"1966" double,"1967" double,"1968" double,"1969" double,"1970" double,"1971" double,"1972" double,"1973" double,"1974" double,"1975" double,"1976" double,"1977" double,"1978" double,"1979" double,"1980" double,"1981" double,"1982" double,"1983" double,"1984" double,"1985" double,"1986" double,"1987" double,"1988" double,"1989" double,"1990" double,"1991" double,"1992" double,"1993" double,"1994" double,"1995" double,"1996" double,"1997" double,"1998" double,"1999" double,"2000" double,"2001" double,"2002" double,"2003" double,"2004" double,"2005" double,"2006" double,"2007" double,"2008" double,"2009" double,"2010" double,"2011" double,"2012" double,"2013" double,"2014" double,"2015" double,"2016" double,"2017" double,"2018" double,"2019" double,"2020" double,"2021" double,"2022" double
                         )
                         with (
-                         external_location = 's3a://pcaf/worldbank/',
+                         external_location = 's3a://pcaf/raw/worldbank/',
                          format = 'PARQUET'
                         )""",
         handler=list,

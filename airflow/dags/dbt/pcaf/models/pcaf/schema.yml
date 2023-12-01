@@ -1,7 +1,21 @@
 version: 2
 
+sources:
+  - name: pcaf
+    database: hive  
+    tables:
+      - name: primap
+        description: "PRIMAP data source"
+      - name: annexi
+        description: "UNFCCC annexi data source"
+      - name: non_annexi
+        description: "UNFCCC non-annexi data source"
+      - name: worldbank
+        description: "WDI data source"
+
 models:
   - name: pcaf_unfccc_sovereign_emissions
+    description: "UNFCCC sovereign emissions by country and year"
     columns:
       - name: country_iso_code
         description: "ISO-3166 Country Code (alpha_3)"
@@ -41,12 +55,262 @@ models:
             - country_iso_code
             - validity_date
     config:
-      tags: 'UNFCCC' 
-  - name: pcaf_primap
-  - name: pcaf_primap_source
-  - name: pcaf_unfccc_annexi_source
-  - name: pcaf_unfccc_nonannexi_source
+      tags: "UNFCCC" 
+    meta:
+      data provider: 'UNFCCC'
+      title: 'UNFCCC sovereign emissions by country and year'
+      author: 'UNFCCC'
+      contact: 'GHGdata@unfccc.int'
+      release_date: '2022-01-01 00:00:00'
+      team: "datacommons"
+  
+  - name: pcaf_unfccc_with_lulucf   
+    description: "UNFCCC GHG Total including LULUCF by country and year" 
+    owner: "datacommons"    
+    domain: "os-climate"   
+    columns:
+      - name: scr_indicator
+        description: "Annual_Net_emissions_removals_in_Gg_CO₂_equivalent_incl_LULUCF.csv and Time_Series_GHG_total_with_LULUCF_in_kt_CO₂_equivalent.xlsx"
+      - name: data_provider
+        description: "UNFCCC"
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name 
+        description: "ISO-3166 Country Name"
+      - name: attribute
+        description: "Time Series - GHG total with LULUCF"
+      - name: value
+        description: "kt CO₂ equivalent"
+      - name: value_units
+        description: "kt CO2e"
+      - name: validity_date
+        description: "Year of measurement"
+    config:
+      tags: 
+        - "annual"  
+        - "UNFCCC" 
+    meta: 
+      data provider: 'UNFCCC'  
+      title: "UNFCCC GHG Total including LULUCF by country and year"
+      author: "UNFCCC"
+      contact: "GHGdata@unfccc.int"
+      release_date: "2022-01-01 00:00:00"
+      team: "datacommons"  
+        
+  - name: pcaf_unfccc_without_lulucf    
+    description: "UNFCCC GHG Total excluding LULUCF by country and year"
+    columns:
+      - name: scr_indicator
+        description: "Annual_Net_emissions_removals_in_Gg_CO₂_equivalent_excl_LULUCF.csv and Time_Series_GHG_total_without_LULUCF_in_kt_CO₂_equivalent.xlsx"
+      - name: data_provider
+        description: "UNFCCC"
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name 
+        description: "ISO-3166 Country Name"
+      - name: attribute
+        description: "Time Series - GHG total with LULUCF"
+      - name: value
+        description: "kt CO₂ equivalent"
+      - name: value_units
+        description: "kt CO2e"
+      - name: validity_date
+        description: "Year of measurement"
+    config:
+      tags: 
+        - "annual"  
+        - "UNFCCC"
+    meta:
+      data provider: 'UNFCCC'
+      title: "UNFCCC GHG Total excluding LULUCF by country and year"
+      author: "UNFCCC"
+      contact: "GHGdata@unfccc.int"
+      release_date: "2022-01-01 00:00:00" 
+      team: "datacommons"
+      domain: "os-climate"  
+
+  - name: pcaf_primap    
+    description: "Unpivoted data of the PRIMAP-hist national historical emissions time series v2.4.1 (1750-2021). Contains data from 1960-2021"
+    owner: testteam
+    domain: testteam
+    columns:
+      - name: scr_indicator
+        description: "Guetschow-et-al-2022-PRIMAP-hist_v2.4_11-Oct-2022.csv"
+      - name: data_provider
+        description: "PRIMAP"
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name 
+        description: "ISO-3166 Country Name"
+      - name: attribute
+        description: "KYOTOGHG (AR4GWP100)"
+      - name: value
+        description: "value of GDP or GDP PPP"
+      - name: value_units
+        description: "kt CO2 / a"
+      - name: validity_date
+        description: "Year of measurement"
+    config:
+      tags: 
+        - "annual"  
+        - "PRIMAP"
+    meta: 
+      data provider: 'PRIMAP'
+      title: "The PRIMAP-hist national historical emissions time series (1960-2021) v2.4"
+      author: "Gütschow, J.; Jeffery, L.; Gieseke, R.; Gebel, R.; Stevens, D.; Krapp, M.; Rocha, M."
+      contact: "github.com/JGuetschow/PRIMAP-hist"
+      release_date: "2022-10-17, 2022 00:00:00" 
+      team: "datacommons"
+
+  - name: pcaf_primap_staging
+    description: "Gütschow, J.; Pflüger, M. (2023): The PRIMAP-hist national historical emissions time series v2.4.1 (1750-2021). zenodo. doi:10.5281/zenodo.7585420. Contains data from 1960 - 2021"  
+    columns:
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: scenario 
+        description: "Different scenarios"
+      - name: attribute
+        description: "Different attributes"
+      - name: source
+        description: "Attribute source"
+      - name: category
+        description: "Different Categories"
+    config:
+      tags: 
+        - "annual"  
+        - "PRIMAP"
+    meta:
+      data provider: 'PRIMAP'
+      title: "The PRIMAP-hist national historical emissions time series (1960-2021) v2.4"
+      description: "Gütschow, J.; Pflüger, M. (2023): The PRIMAP-hist national historical emissions time series v2.4.1 (1750-2021). zenodo. doi:10.5281/zenodo.7585420. Contains data from 1960 - 2021"
+      author: "Gütschow, J.; Jeffery, L.; Gieseke, R.; Gebel, R.; Stevens, D.; Krapp, M.; Rocha, M."
+      contact: "github.com/JGuetschow/PRIMAP-hist"
+      release_date: "2022-10-17, 2022 00:00:00"
+      team: "datacommons"
+
   - name: pcaf_wdi
-  - name: pcaf_wdi_source
-  - name: pcaf_unfccc_with_lulucf
-  - name: pcaf_unfccc_without_lulucf
+    description: "This indicator provides per capita values for gross domestic product (GDP) expressed in current international dollars converted by purchasing power parity (PPP) conversion factor. GDP is the sum of gross value added by all resident producers in the country plus any product taxes and minus any subsidies not included in the value of the products. conversion factor is a spatial price deflator and currency converter that controls for price level differences between countries. Total population is a mid-year population based on the de facto definition of population, which counts all residents regardless of legal status or citizenship."     
+    columns:
+      - name: scr_indicator
+        description: "API_NY.GDP.MKTP.CD_DS2_en_csv_v2.csv and API_NY.GDP.MKTP.PP.CD_DS2_en_csv_v2.csv"
+      - name: data_provider
+        description: "WDI"
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name 
+        description: "ISO-3166 Country Name"
+      - name: attribute
+        description: "GDP or GDP PPP"
+      - name: value
+        description: "value of GDP or GDP PPP"
+      - name: value_units
+        description: "USD"
+      - name: validity_date
+        description: "Year of measurement"
+    config:
+      tags:   
+        - "WDI" 
+    meta:
+      data provider: 'WDI'
+      title: "World Bank GDP per capita, PPP (current international $)"
+      author: "International Comparison Program, World Bank | World Development Indicators database, World Bank | Eurostat-OECD PPP Programme."
+      contact: "data@worldbank.org"
+      release_date: "2022-01-01 00:00:00"
+      owner: "testteam"
+      database: "hive"
+      schema: pcaf"
+
+  - name: pcaf_wdi_staging
+    description: "This indicator provides per capita values for gross domestic product (GDP) expressed in current international dollars converted by purchasing power parity (PPP) conversion factor. GDP is the sum of gross value added by all resident producers in the country plus any product taxes and minus any subsidies not included in the value of the products. conversion factor is a spatial price deflator and currency converter that controls for price level differences between countries. Total population is a mid-year population based on the de facto definition of population, which counts all residents regardless of legal status or citizenship." 
+    columns:
+      - name: country_iso_code
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: country_name 
+        description: "ISO-3166 Country Name"
+      - name: attribute
+        description: "Different attributes"
+      - name: attribute_code
+        description: "Different attribute codes"
+    config:
+      tags: 
+        - "WDI"
+    meta: 
+      data provider: 'WDI'
+      title: "World Bank GDP per capita, PPP (current international $)"
+      description: "This indicator provides per capita values for gross domestic product (GDP) expressed in current international dollars converted by purchasing power parity (PPP) conversion factor. GDP is the sum of gross value added by all resident producers in the country plus any product taxes and minus any subsidies not included in the value of the products. conversion factor is a spatial price deflator and currency converter that controls for price level differences between countries. Total population is a mid-year population based on the de facto definition of population, which counts all residents regardless of legal status or citizenship."
+      author: "International Comparison Program, World Bank | World Development Indicators database, World Bank | Eurostat-OECD PPP Programme."
+      contact: "data@worldbank.org"
+      release_date: "2022-01-01 00:00:00"
+      team: "datacommons"
+
+  - name: pcaf_unfccc_annexi_staging
+    description: "GHG related emission data"
+    columns:
+      - name: party
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: category
+        description: ''
+      - name: classification
+        description: ''
+      - name: measure
+        description: "Different measures (e.g. 'Net emissions/removals')"
+      - name: gas
+        description: "Different emission types (e.g. 'Aggregate GHGs)"
+      - name: unit
+        description: "Unit of the related measure and emission type" 
+      - name: year
+        description: "Year of measurement"
+      - name: numbervalue
+        description: "null or measure value when number"
+      - name: stringvalue
+        description: "null or measure value when string"
+    config:
+      tags: 
+        - "UNFCCC" 
+        - "annual"
+    meta:
+      data provider: 'UNFCCC'
+      title: "UNFCCC annexi data"
+      author: "UNFCCC"
+      contact: "GHGdata@unfccc.int"
+      release_date: "2022-01-01 00:00:00"  
+      owner: "datacommons"
+      database: "hive"
+      schema: pcaf"
+      domain: "osclimate"
+
+  - name: pcaf_unfccc_nonannexi_staging
+    description: "GHG related emission data"
+    columns:
+      - name: party
+        description: "ISO-3166 Country Code (alpha_3)"
+      - name: category
+        description: ''
+      - name: classification
+        description: ''
+      - name: measure
+        description: "Different measures (e.g. 'Net emissions/removals')"
+      - name: gas
+        description: "Different emission types (e.g. 'Aggregate GHGs)"
+      - name: unit
+        description: "Unit of the related measure and emission type" 
+      - name: year
+        description: "Year of measurement"
+      - name: numbervalue
+        description: "null or measure value when number"
+      - name: stringvalue
+        description: "null or measure value when string"
+    config:
+      tags: 
+        - "UNFCCC" 
+        - "annual"
+    meta:
+      data provider: 'UNFCCC'
+      title: "UNFCCC non-annexi data"
+      author: "UNFCCC"
+      contact: "GHGdata@unfccc.int"
+      release_date: "2022-01-01 00:00:00"
+      owner: "datacommons"
+      database: "hive"
+      schema: pcaf"
+      domain: "osclimate"
