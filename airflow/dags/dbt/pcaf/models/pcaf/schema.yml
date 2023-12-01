@@ -65,8 +65,6 @@ models:
   
   - name: pcaf_unfccc_with_lulucf   
     description: "UNFCCC GHG Total including LULUCF by country and year" 
-    owner: "datacommons"    
-    domain: "os-climate"   
     columns:
       - name: scr_indicator
         description: "Annual_Net_emissions_removals_in_Gg_CO₂_equivalent_incl_LULUCF.csv and Time_Series_GHG_total_with_LULUCF_in_kt_CO₂_equivalent.xlsx"
@@ -127,8 +125,6 @@ models:
 
   - name: pcaf_primap    
     description: "Unpivoted data of the PRIMAP-hist national historical emissions time series v2.4.1 (1750-2021). Contains data from 1960-2021"
-    owner: testteam
-    domain: testteam
     columns:
       - name: scr_indicator
         description: "Guetschow-et-al-2022-PRIMAP-hist_v2.4_11-Oct-2022.csv"
