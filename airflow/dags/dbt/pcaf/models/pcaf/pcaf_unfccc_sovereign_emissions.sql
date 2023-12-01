@@ -20,7 +20,7 @@ enhanced as (
         ,gdp.value_units gdp_units 
         ,ppp.value                                                    as gdp_ppp
         ,ppp.value_units                                              as gdp_ppp_units
-        ,coalesce(b.value, c.value, 0)/nullif(ppp.value, 0)*1000000   as ghg_intensity_with_lulucf_per_gdp
+        ,coalesce(a.value, c.value, 0)/nullif(ppp.value, 0)*1000000   as ghg_intensity_with_lulucf_per_gdp
         ,'CO2eq * kt / USD'                                           as ghg_intensity_with_lulucf_per_gdp_units
         ,coalesce(b.value, c.value, 0)/nullif(ppp.value, 0)*1000000 as ghg_intensity_without_lulucf_per_gdp
         ,'CO2eq * kt / USD'                                           as ghg_intensity_without_lulucf_per_gdp_units
