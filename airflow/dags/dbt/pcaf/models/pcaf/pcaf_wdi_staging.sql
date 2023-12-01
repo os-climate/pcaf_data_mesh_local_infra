@@ -1,20 +1,13 @@
+with worldbank as (
 
-/*
-    Welcome to your first dbt model!
-    Did you know that you can also configure models directly within SQL files?
-    This will override configurations stated in dbt_project.yml
-
-    Try changing "table" to "view" below
-*/
-
-{{ config(materialized='view') }}
-
+    select * from {{ source('pcaf', 'worldbank')}}
+)
 
 SELECT
- "country name"   as country_name
-,"country code"   as country_code
-,"indicator name" as indicator_name
-,"indicator code" as indicator_code
+ "country code"   as country_iso_code
+,"country name"   as country_name
+,"indicator name" as attribute
+,"indicator code" as attribute_code
 ,"1960" as year_1960 
 ,"1961" as year_1961
 ,"1962" as year_1962
@@ -78,10 +71,4 @@ SELECT
 ,"2020" as year_2020
 ,"2021" as year_2021
 ,"2022" as year_2022
-FROM hive.pcaf.worldbank
-
-/*
-    Uncomment the line below to remove records with null `id` values
-*/
-
---where value is not null
+FROM worldbank

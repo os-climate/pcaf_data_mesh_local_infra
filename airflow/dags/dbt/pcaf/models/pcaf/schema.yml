@@ -16,8 +16,6 @@ sources:
 models:
   - name: pcaf_unfccc_sovereign_emissions
     description: "UNFCCC sovereign emissions by country and year"
-    database: "hive"
-    schema: "pcaf"
     columns:
       - name: country_iso_code
         description: "ISO-3166 Country Code (alpha_3)"

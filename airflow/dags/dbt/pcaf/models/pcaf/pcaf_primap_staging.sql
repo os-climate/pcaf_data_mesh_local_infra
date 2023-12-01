@@ -1,21 +1,16 @@
+with primap as (
 
-/*
-    Welcome to your first dbt model!
-    Did you know that you can also configure models directly within SQL files?
-    This will override configurations stated in dbt_project.yml
+  select * from {{ source('pcaf', 'primap') }}
 
-    Try changing "table" to "view" below
-*/
-
-{{ config(materialized='view') }}
+)
 
 select 
-source
-,"scenario (primap-hist)" as scenario_primap_hist
-,"area (iso3)"            as area_iso3
-,entity
-,unit
-,"category (ipcc2006_primap)" as category_ipcc2006_primap
+ "area (iso3)"            as country_iso_code
+,"scenario (primap-hist)" as scenario
+,entity                   as attribute
+,unit                     as value_units
+,source
+,"category (ipcc2006_primap)" as category
 --,"1750" as year_1750
 --,"1751" as year_1751
 --,"1752" as year_1752
@@ -226,37 +221,37 @@ source
 --,"1957" as year_1957
 --,"1958" as year_1958
 --,"1959" as year_1959
---,"1960" as year_1960
---,"1961" as year_1961
---,"1962" as year_1962
---,"1963" as year_1963
---,"1964" as year_1964
---,"1965" as year_1965
---,"1966" as year_1966
---,"1967" as year_1967
---,"1968" as year_1968
---,"1969" as year_1969
---,"1970" as year_1970
---,"1971" as year_1971
---,"1972" as year_1972
---,"1973" as year_1973
---,"1974" as year_1974
---,"1975" as year_1975
---,"1976" as year_1976
---,"1977" as year_1977
---,"1978" as year_1978
---,"1979" as year_1979
---,"1980" as year_1980
---,"1981" as year_1981
---,"1982" as year_1982
---,"1983" as year_1983
---,"1984" as year_1984
---,"1985" as year_1985
---,"1986" as year_1986
---,"1987" as year_1987
---,"1988" as year_1988
---,"1989" as year_1989
---,"1990" as year_1990
+,"1960" as year_1960
+,"1961" as year_1961
+,"1962" as year_1962
+,"1963" as year_1963
+,"1964" as year_1964
+,"1965" as year_1965
+,"1966" as year_1966
+,"1967" as year_1967
+,"1968" as year_1968
+,"1969" as year_1969
+,"1970" as year_1970
+,"1971" as year_1971
+,"1972" as year_1972
+,"1973" as year_1973
+,"1974" as year_1974
+,"1975" as year_1975
+,"1976" as year_1976
+,"1977" as year_1977
+,"1978" as year_1978
+,"1979" as year_1979
+,"1980" as year_1980
+,"1981" as year_1981
+,"1982" as year_1982
+,"1983" as year_1983
+,"1984" as year_1984
+,"1985" as year_1985
+,"1986" as year_1986
+,"1987" as year_1987
+,"1988" as year_1988
+,"1989" as year_1989
+,"1990" as year_1990
 ,"1991" as year_1991
 ,"1992" as year_1992
 ,"1993" as year_1993
@@ -288,4 +283,4 @@ source
 ,"2019" as year_2019
 ,"2020" as year_2020
 ,"2021" as year_2021
-FROM hive.pcaf.primap
+FROM primap
