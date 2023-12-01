@@ -206,8 +206,6 @@ models:
       author: "International Comparison Program, World Bank | World Development Indicators database, World Bank | Eurostat-OECD PPP Programme."
       contact: "data@worldbank.org"
       release_date: "2022-01-01 00:00:00"
-      database: "hive"
-      schema: pcaf"
 
   - name: pcaf_wdi_staging
     description: "This indicator provides per capita values for gross domestic product (GDP) expressed in current international dollars converted by purchasing power parity (PPP) conversion factor. GDP is the sum of gross value added by all resident producers in the country plus any product taxes and minus any subsidies not included in the value of the products. conversion factor is a spatial price deflator and currency converter that controls for price level differences between countries. Total population is a mid-year population based on the de facto definition of population, which counts all residents regardless of legal status or citizenship." 
