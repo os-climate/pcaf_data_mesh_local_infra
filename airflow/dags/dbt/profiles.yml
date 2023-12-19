@@ -1,6 +1,10 @@
 pcaf:
-  target: dev
+  target: dev_with_fal
   outputs:
+    dev_with_fal:
+      type: fal
+      db_profile: dev
+
     dev:
       type: trino
       host: trino

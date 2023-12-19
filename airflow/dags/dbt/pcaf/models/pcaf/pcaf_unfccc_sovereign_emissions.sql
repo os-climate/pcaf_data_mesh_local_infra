@@ -22,7 +22,7 @@ enhanced as (
         ,ppp.value_units                                              as gdp_ppp_units
         ,coalesce(a.value, c.value, 0)/nullif(ppp.value, 0)*1000000   as ghg_intensity_with_lulucf_per_gdp
         ,'CO2eq * kt / USD'                                           as ghg_intensity_with_lulucf_per_gdp_units
-        ,coalesce(b.value, c.value, 0)/nullif(ppp.value, 0)*1000000 as ghg_intensity_without_lulucf_per_gdp
+        ,coalesce(b.value, c.value, 0)/nullif(ppp.value, 0)*1000000   as ghg_intensity_without_lulucf_per_gdp
         ,'CO2eq * kt / USD'                                           as ghg_intensity_without_lulucf_per_gdp_units
     from cte_base cteb 
     left join {{ref('pcaf_unfccc_with_lulucf')}} a 

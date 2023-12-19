@@ -9,7 +9,6 @@ RUN apt-get update \
 #ADD requirements.txt . 
 USER airflow
 
-
 RUN pip install apache-airflow-providers-trino \
                 openmetadata-managed-apis~=1.2.2 \
                 openmetadata-ingestion==1.2.2 \
@@ -19,11 +18,14 @@ RUN pip install apache-airflow-providers-trino \
 
 RUN mkdir -p /opt/airflow/dag_generated_configs
 
+#COPY Pipfile Pipfile.lock setup.py test_environment.py .env ./ 
+
 # install dbt into a virtual environment
 #WORKDIR /usr/local/airflow/
 ENV PIP_USER=false
 RUN python -m venv dbt_venv && source dbt_venv/bin/activate && \
-     pip install --no-cache-dir dbt-trino==1.6.2 && deactivate
+    pip install --no-cache-dir pipenv dbt-trino==1.5.1 dbt-fal==1.5.9 pycountry country_converter && \
+    pipenv install && deactivate
 ENV PIP_USER=true
 ENV PATH="$PATH:/opt/airflow/dbt_venv/bin"
 
