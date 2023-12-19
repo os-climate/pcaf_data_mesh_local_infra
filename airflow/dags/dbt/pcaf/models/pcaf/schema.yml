@@ -12,8 +12,24 @@ sources:
         description: "UNFCCC non-annexi data source"
       - name: worldbank
         description: "WDI data source"
+      - name: oecd
+        description: "OECD data source"
+      - name: countries
+        description: 'created by python'
 
 models:
+
+  - name: countries
+    description: My transformation written in Python
+    columns: 
+      - name: country_iso3_code
+      - name: country_iso2_code
+      - name: country_name
+    config:
+      materialized: table
+      on_table_exists: drop
+      tags: 'python'
+
   - name: pcaf_unfccc_sovereign_emissions
     description: "UNFCCC sovereign emissions by country and year"
     columns:

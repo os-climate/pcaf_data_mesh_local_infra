@@ -27,6 +27,9 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
+vars:
+  # Add this to your dbt_project.yml
+  fal-models-paths: ["fal_models"]
 
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
@@ -38,6 +41,7 @@ models:
   pcaf:
     pcaf:
       +materialized: 'view'
+      +on_table_exists: 'drop'
       +meta: 
         owner: "datacommons"
         domain: "osclimate"

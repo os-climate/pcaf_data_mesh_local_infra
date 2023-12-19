@@ -41,7 +41,7 @@ with DAG(
     trino_create_schema = TrinoOperator(
         task_id="trino_create_schema",
         trino_conn_id="trino_connection",
-        sql=f"CREATE SCHEMA IF NOT EXISTS hive.pcaf WITH (location = 's3a://pcaf/')",
+        sql=f"CREATE SCHEMA IF NOT EXISTS hive.pcaf WITH (location = 's3a://pcaf/data')",
         handler=list,
     )
 

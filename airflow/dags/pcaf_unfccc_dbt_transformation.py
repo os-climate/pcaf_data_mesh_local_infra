@@ -7,7 +7,7 @@ from cosmos.operators import DbtDocsS3Operator
 
 profile_config = ProfileConfig(
     profile_name="pcaf",
-    target_name="dev",
+    target_name="dev_with_fal",
     profiles_yml_filepath="/opt/airflow/dags/dbt/profiles.yml",
 )
 
