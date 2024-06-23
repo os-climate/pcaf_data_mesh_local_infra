@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.3
+FROM apache/airflow:2.7.1
 USER root
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -8,13 +8,16 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 #ADD requirements.txt . 
 USER airflow
-
-RUN pip install apache-airflow-providers-trino \
-                openmetadata-managed-apis~=1.2.2 \
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir pipenv \
+                sqllineage \
+                apache-airflow-providers-trino \
+                openmetadata-managed-apis==1.2.2 \
                 openmetadata-ingestion==1.2.2 \
                 astronomer-cosmos==1.2.5 \
                 typing-extensions==4.5.0 \
-                dbt-artifacts-parser
+                dbt-artifacts-parser 
+       
 
 RUN mkdir -p /opt/airflow/dag_generated_configs
 
