@@ -7,7 +7,7 @@ from cosmos.operators import DbtDocsS3Operator
 
 profile_config = ProfileConfig(
     profile_name="pcaf",
-    target_name="dev_with_fal",
+    target_name="dev",
     profiles_yml_filepath="/opt/airflow/dags/dbt/profiles.yml",
 )
 
@@ -21,7 +21,7 @@ execution_config = ExecutionConfig(
 
 
 with DAG(
-    dag_id="pcaf_unfccc_dbt_transformation",
+    dag_id="pcaf_dbt_transformation",
     start_date=datetime(2021, 1, 1, tz="UTC"),
     schedule_interval="@daily", catchup=False
 ):

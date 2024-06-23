@@ -14,136 +14,20 @@ sources:
         description: "WDI data source"
       - name: oecd
         description: "OECD data source"
-      - name: countries
-        description: 'created by python'
+      - name: pycountry
+        description: 'country dimension created with python module pycountry'
 
 models:
 
-  - name: countries
-    description: My transformation written in Python
+  - name: pcaf_countries    
+    description: "Slim country dimension used in the calculation. "
     columns: 
       - name: country_iso3_code
+        description: Identifies a country by iSO3 standard.
       - name: country_iso2_code
+        description: Identifies a country by iSO2 standard.
       - name: country_name
-    config:
-      materialized: table
-      on_table_exists: drop
-      tags: 'python'
-
-  - name: pcaf_unfccc_sovereign_emissions
-    description: "UNFCCC sovereign emissions by country and year"
-    columns:
-      - name: country_iso_code
-        description: "ISO-3166 Country Code (alpha_3)"
-      - name: country_name
-        description: "ISO-3166 Country Name"
-      - name: validity_date
-        description: "Year of measurement"
-      - name: ghg_total_with_lulucf
-        description: "if not NULL, GHG total including LULUCF"
-      - name: ghg_total_with_lulucf_units
-        description: "kt CO2eq"
-      - name: ghg_total_without_lulucf
-        description: "if not NULL, GHG total excluding LULUCF"
-      - name: ghg_total_without_lulucf_units
-        description: "kt CO2eq"
-      - name: scope1_excl_source
-        description: "UNFCC or PRIMAP or NULL"
-      - name: gdp
-        description: "Gross Domestic Product"
-      - name: gdp_units
-        description: "USD"
-      - name: gdp_ppp
-        description: "Gross Domestic Product, normalized to Purchasing Power Parity"
-      - name: gdp_ppp_units
-        description: "USD"
-      - name: ghg_intensity_with_lulucf_per_gdp
-        description: "GHG tons including LULUCH divided by GDP"
-      - name: ghg_intensity_with_lulucf_per_gdp_units
-        description: "kt CO2e / USD"
-      - name: ghg_intensity_without_lulucf_per_gdp
-        description: "GHG tons excluding LULUCH divided by GDP"
-      - name: ghg_intensity_without_lulucf_per_gdp_units
-        description: "kt CO2e / USD"
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - country_iso_code
-            - validity_date
-    config:
-      tags: "UNFCCC" 
-    meta:
-      data provider: 'UNFCCC'
-      title: 'UNFCCC sovereign emissions by country and year'
-      author: 'UNFCCC'
-      contact: 'GHGdata@unfccc.int'
-      release_date: '2022-01-01 00:00:00'
-      team: "datacommons"
-  
-  - name: pcaf_unfccc_with_lulucf   
-    description: "UNFCCC GHG Total including LULUCF by country and year" 
-    owner: "datacommons"    
-    domain: "os-climate"   
-    columns:
-      - name: scr_indicator
-        description: "Annual_Net_emissions_removals_in_Gg_CO₂_equivalent_incl_LULUCF.csv and Time_Series_GHG_total_with_LULUCF_in_kt_CO₂_equivalent.xlsx"
-      - name: data_provider
-        description: "UNFCCC"
-      - name: country_iso_code
-        description: "ISO-3166 Country Code (alpha_3)"
-      - name: country_name 
-        description: "ISO-3166 Country Name"
-      - name: attribute
-        description: "Time Series - GHG total with LULUCF"
-      - name: value
-        description: "kt CO₂ equivalent"
-      - name: value_units
-        description: "kt CO2e"
-      - name: validity_date
-        description: "Year of measurement"
-    config:
-      tags: 
-        - "annual"  
-        - "UNFCCC" 
-    meta: 
-      data provider: 'UNFCCC'  
-      title: "UNFCCC GHG Total including LULUCF by country and year"
-      author: "UNFCCC"
-      contact: "GHGdata@unfccc.int"
-      release_date: "2022-01-01 00:00:00"
-      team: "datacommons"  
-        
-  - name: pcaf_unfccc_without_lulucf    
-    description: "UNFCCC GHG Total excluding LULUCF by country and year"
-    columns:
-      - name: scr_indicator
-        description: "Annual_Net_emissions_removals_in_Gg_CO₂_equivalent_excl_LULUCF.csv and Time_Series_GHG_total_without_LULUCF_in_kt_CO₂_equivalent.xlsx"
-      - name: data_provider
-        description: "UNFCCC"
-      - name: country_iso_code
-        description: "ISO-3166 Country Code (alpha_3)"
-      - name: country_name 
-        description: "ISO-3166 Country Name"
-      - name: attribute
-        description: "Time Series - GHG total with LULUCF"
-      - name: value
-        description: "kt CO₂ equivalent"
-      - name: value_units
-        description: "kt CO2e"
-      - name: validity_date
-        description: "Year of measurement"
-    config:
-      tags: 
-        - "annual"  
-        - "UNFCCC"
-    meta:
-      data provider: 'UNFCCC'
-      title: "UNFCCC GHG Total excluding LULUCF by country and year"
-      author: "UNFCCC"
-      contact: "GHGdata@unfccc.int"
-      release_date: "2022-01-01 00:00:00" 
-      team: "datacommons"
-      domain: "os-climate"  
+        description: Official country name.
 
   - name: pcaf_primap    
     description: "Unpivoted data of the PRIMAP-hist national historical emissions time series v2.4.1 (1750-2021). Contains data from 1960-2021"
@@ -259,74 +143,143 @@ models:
       release_date: "2022-01-01 00:00:00"
       team: "datacommons"
 
-  - name: pcaf_unfccc_annexi_staging
-    description: "GHG related emission data"
+  - name: pcaf_oecd_sovereign_emissions
+    descripions: "GHG Scope2 and GHG Scope3 data, calcuated based on OECD data"
     columns:
-      - name: party
-        description: "ISO-3166 Country Code (alpha_3)"
-      - name: category
-        description: ''
-      - name: classification
-        description: ''
-      - name: measure
-        description: "Different measures (e.g. 'Net emissions/removals')"
-      - name: gas
-        description: "Different emission types (e.g. 'Aggregate GHGs)"
-      - name: unit
-        description: "Unit of the related measure and emission type" 
-      - name: year
-        description: "Year of measurement"
-      - name: numbervalue
-        description: "null or measure value when number"
-      - name: stringvalue
-        description: "null or measure value when string"
-    config:
-      tags: 
-        - "UNFCCC" 
-        - "annual"
-    meta:
-      data provider: 'UNFCCC'
-      title: "UNFCCC annexi data"
-      author: "UNFCCC"
-      contact: "GHGdata@unfccc.int"
-      release_date: "2022-01-01 00:00:00"  
-      owner: "datacommons"
-      database: "hive"
-      schema: pcaf"
-      domain: "osclimate"
+    - name: country_iso3_code
+      description: "country_iso3_code"
+    - name: validity_date
+      description: "Validity date of GHG data points"
+    - name: scope2_value
+      description: "GHG scope2 value"
+    - name: scope3_value
+      description: "GHG scope3 value"
+    - name: exported_emissions_value
+      description: "exported_emissions_value"
+    - name: partial_consumption_value
+      description: "partial_consumption_value"
 
-  - name: pcaf_unfccc_nonannexi_staging
-    description: "GHG related emission data"
+
+  - name: pcaf_primap_sovereign_emissions
+    description: "The PRIMAP-hist dataset combines several published datasets to create a comprehensive set of greenhouse gas emission pathways for every country and Kyoto gas covering the years from 1750 to 2022, and all UNFCCC (United Nations Framework Convention on Climate Change) member states, as well as most non-UNFCCC territories. Subsector data for Energy, Industrial Processes and Agriculture is available for CO2, CH4, and N2O. Due to data availability and methodological issues, the data for land use, land use change, and forestry (LULUCF) of the PRIMAP-hist dataset has to be used with extra care. "
     columns:
-      - name: party
+      - name: country_iso3_code
         description: "ISO-3166 Country Code (alpha_3)"
-      - name: category
-        description: ''
-      - name: classification
-        description: ''
-      - name: measure
-        description: "Different measures (e.g. 'Net emissions/removals')"
-      - name: gas
-        description: "Different emission types (e.g. 'Aggregate GHGs)"
-      - name: unit
-        description: "Unit of the related measure and emission type" 
-      - name: year
+      - name: validity_date
         description: "Year of measurement"
-      - name: numbervalue
-        description: "null or measure value when number"
-      - name: stringvalue
-        description: "null or measure value when string"
+      - name: ghg_total_with_lulucf
+        description: "if not NULL, GHG total including LULUCF"
+      - name: ghg_total_with_lulucf_units
+        description: "kt CO2eq"
+      - name: ghg_total_without_lulucf
+        description: "if not NULL, GHG total excluding LULUCF"
+      - name: ghg_total_without_lulucf_units
+        description: "kt CO2eq"
+      - name: scope1_excl_source
+        description: "PRIMAP or NULL"
+      - name: gdp
+        description: "Gross Domestic Product"
+      - name: gdp_units
+        description: "USD"
+      - name: gdp_ppp
+        description: "Gross Domestic Product, normalized to Purchasing Power Parity"
+      - name: gdp_ppp_units
+        description: "USD"
+      - name: ghg_intensity_with_lulucf_per_gdp
+        description: "GHG tons including LULUCH divided by GDP"
+      - name: ghg_intensity_with_lulucf_per_gdp_units
+        description: "kt CO2e / USD"
+      - name: ghg_intensity_without_lulucf_per_gdp
+        description: "GHG tons excluding LULUCH divided by GDP"
+      - name: ghg_intensity_without_lulucf_per_gdp_units
+        description: "kt CO2e / USD"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - country_iso3_code
+            - validity_date
     config:
-      tags: 
-        - "UNFCCC" 
-        - "annual"
+      tags: "Primap" 
     meta:
-      data provider: 'UNFCCC'
-      title: "UNFCCC non-annexi data"
-      author: "UNFCCC"
-      contact: "GHGdata@unfccc.int"
-      release_date: "2022-01-01 00:00:00"
-      owner: "datacommons"
-      database: "hive"
-      schema: pcaf"
-      domain: "osclimate"
+      data provider: 'Primap-hist'
+      title: 'UNFCCC sovereign emissions by country and year'
+      author: 'Gütschow, Johannes; Jeffery, M. Louise; Gieseke, Robert; Gebel, Ronja; Stevens, David; Krapp, Mario; Rocha, Marcia (2016): The PRIMAP-hist national historical emissions time series, Earth Syst. Sci. Data, 8, 571-603, https://doi.org/10.5194/essd-8-571-2016'
+      contact: ''
+      release_date: '2022-01-01 00:00:00'
+      team: "datacommons"
+
+  - name: pcaf_total_sovereign_emissions
+    description: 'Final PCAF dataset, combines OESD, Primat and Worldbank data'
+    columns: 
+    - name: validity_date
+      description: "validity_date"
+    - name: country_iso3_code
+      description: "country_iso3_code"
+    - name: scope1_incl_lulucf
+      description: "GHG total including LULUCF"
+    - name: ghg_total_with_lulucf_units
+      description: "kt CO2e"
+    - name: scope1_excl_lulucf
+      description: "GHG total excluding LULUCF"
+    - name: ghg_total_without_lulucf_units
+      description: "kt CO2e"
+    - name: scope1_excl_source
+      description: "Source of scope1"
+    - name: gdp
+      description: "Gross domain product"
+    - name: gdp_units
+      description: "USD"
+    - name: gdp_ppp
+      description: "Gross domain product PPP"
+    - name: gdp_ppp_units
+      description: "USD"
+    - name: ghg_intensity_with_lulucf_per_gdp
+      description: "GHG tons including LULUC divided by GDP"
+    - name: ghg_intensity_with_lulucf_per_gdp_units
+      description: "kt CO2e / USD"
+    - name: ghg_intensity_without_lulucf_per_gdp
+      description: "GHG tons not including LULUCF divided by GDP"
+    - name: ghg_intensity_without_lulucf_per_gdp_units
+      description: "kt CO2e / USD"
+    - name: scope2_value
+      description: "Scope2 GHG"
+    - name: scope2_date
+      description: "Validity date of the scope2 source data"
+    - name: scope3_value
+      description: "Scope3 GHG"
+    - name: scope3_date
+      description: "Validity date of the scope3 source data"
+    - name: exported_emissions_value
+      description: "exported_emissions_value"
+    - name: partial_consumption_value
+      description: "artial_consumption_value"
+    - name: population_value
+      description: "population_value"
+    - name: partial_population
+      description: "partial_population"
+    - name: calc_attr_factor_yn
+      description: "calc_attr_factor_yn"
+    - name: attr_partial_gdp_ppp
+      description: "attr_partial_gdp_ppp"
+    - name: attr_partial_gdp
+      description: "attr_partial_gdp"
+    - name: consumption_emissions_excl_lulucf
+      description: "onsumption_emissions_excl_lulucf"
+    - name: consumption_emissions_incl_lulucf
+      description: "consumption_emissions_incl_lulucf"
+    - name: consumption_emissions_excl_lulucf_per_capita
+      description: "consumption_emissions_excl_lulucf_per_capita"
+    - name: consumption_emissions_incl_lulucf_per_capita
+      description: "onsumption_emissions_incl_lulucf_per_capita"
+    - name: attribution_factor_scope1_excl_lulucf
+      description: "attribution_factor_scope1_excl_lulucf"
+    - name: attribution_factor_scope1_incl_lulucf
+      description: "attribution_factor_scope1_incl_lulucf"
+    - name: attribution_factor_excl_lulucf
+      description: "attribution_factor_excl_lulucf"
+    - name: attribution_factor_incl_lulucf
+      description: "attribution_factor_incl_lulucf"
+    - name: attribution_factor_excl_lulucf_gdp
+      description: "attribution_factor_excl_lulucf_gdp"
+    - name: attribution_factor_incl_lulucf_gdp
+      description: "ttribution_factor_incl_lulucf_gdp"
